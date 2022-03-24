@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=com.nokia.AccountsUI
+Exec=@prefix@/bin/rtcom-accounts-ui
