@@ -28,7 +28,6 @@ struct _AuiServicePrivate
 {
   DBusGConnection *dbus_gconnection;
   GList *instances;
-  int flags;
 };
 
 typedef struct _AuiServicePrivate AuiServicePrivate;

@@ -32,6 +32,7 @@ PKG_CHECK_MODULES(ACCOUNTS_UI_SERVICE,
 			[glib-2.0 dnl
 			hildon-1 dnl
 			libosso dnl
+			telepathy-glib dnl
 			dbus-glib-1])
 
 #+++++++++++++++++++
