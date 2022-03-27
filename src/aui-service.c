@@ -17,6 +17,8 @@
  *
  */
 
+#include "config.h"
+
 #include <dbus/dbus-glib-lowlevel.h>
 #include <dbus/dbus.h>
 

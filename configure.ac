@@ -17,9 +17,6 @@ AC_PATH_X
 AC_PATH_XTRA
 AC_SUBST(X_CFLAGS)
 
-AM_GCONF_SOURCE_2
-AC_PATH_PROG(GCONFTOOL, gconftool-2)
-
 PKG_PROG_PKG_CONFIG
 
 #+++++++++++++++
@@ -28,19 +25,18 @@ PKG_PROG_PKG_CONFIG
 
 AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
 
-PKG_CHECK_MODULES(ACCOUNTS_UI_SERVICE,
-			[glib-2.0 dnl
-			hildon-1 dnl
-			libosso dnl
-			telepathy-glib dnl
-			dbus-glib-1])
+PKG_CHECK_MODULES(ACCOUNTS_UI,
+                  [glib-2.0 hildon-1 libosso telepathy-glib dbus-glib-1 dnl
+                  hildon-control-panel libaccounts xproto])
 
 #+++++++++++++++++++
 # Directories setup
 #+++++++++++++++++++
 
-hildondesktoplibdir=`pkg-config libhildondesktop-1 --variable=hildondesktoplibdir`
-AC_SUBST(hildondesktoplibdir)
+cplpluginlibdir=`pkg-config hildon-control-panel --variable=pluginlibdir`
+AC_SUBST(cplpluginlibdir)
+
+AC_DEFINE_UNQUOTED([G_LOG_DOMAIN], "$PACKAGE_NAME", [Default logging facility])
 
 AC_OUTPUT([
 Makefile

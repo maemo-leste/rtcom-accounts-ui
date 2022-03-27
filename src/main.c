@@ -17,6 +17,8 @@
  *
  */
 
+#include "config.h"
+
 #include <dbus/dbus-glib.h>
 #include <hildon/hildon.h>
 #include <libosso.h>

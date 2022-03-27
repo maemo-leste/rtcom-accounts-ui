@@ -17,6 +17,8 @@
  *
  */
 
+#include "config.h"
+
 #include <dbus/dbus-glib-lowlevel.h>
 #include <dbus/dbus.h>
 #include <hildon/hildon.h>
@@ -63,7 +65,7 @@ enum
   LAST_SIGNAL
 };
 
-static guint signals[LAST_SIGNAL] = {};
+static guint signals[LAST_SIGNAL] = { 0 };
 
 static int
 aui_instance_close(AuiInstance *instance, GError **error)
