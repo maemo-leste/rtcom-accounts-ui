@@ -79,8 +79,8 @@ enum
   COLUMN_AVATAR,
   COLUMN_NAME,
   COLUMN_DISPLAY_NAME,
-  COLUMN_3,
-  COLUMN_4,
+  COLUMN_SERVICE_NAME,
+  COLUMN_SERVICE_ICON,
   COLUMN_ENABLED,
   COLUMN_DRAFT,
   COLUMN_ACCOUNT_ITEM
@@ -398,12 +398,185 @@ accounts_ui_class_init(AccountsUIClass *klass)
       G_PARAM_STATIC_BLURB | G_PARAM_STATIC_NICK | G_PARAM_READWRITE));
 }
 
+static gboolean
+foreach_func(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
+             gpointer data)
+{
+  gpointer item;
+  GList **l = data;
+
+  gtk_tree_model_get(model, iter, COLUMN_ACCOUNT_ITEM, &item, -1);
+
+  if (item)
+  {
+    g_object_unref(item);
+    *l = g_list_prepend(*l, item);
+  }
+
+  return FALSE;
+}
+
+static GList *
+_accounts_list_get_all(AccountsList *accounts_list)
+{
+  AccountsUIPrivate *priv;
+  GList *l = NULL;
+
+  g_return_val_if_fail(ACCOUNTS_IS_UI(accounts_list), NULL);
+
+  priv = PRIVATE(accounts_list);
+
+  if (priv->store)
+    gtk_tree_model_foreach(GTK_TREE_MODEL(priv->store), foreach_func, &l);
+
+  return l;
+}
+
+static void
+select_first_row(GtkTreeView *tree_view)
+{
+  if (tree_view)
+  {
+    GtkTreePath *path = gtk_tree_path_new_first();
+    gtk_tree_view_set_cursor(tree_view, path, NULL, FALSE);
+    gtk_tree_path_free(path);
+  }
+}
+
+static void
+_accounts_list_remove(AccountsList *accounts_list, AccountItem *account_item)
+{
+  AccountsUIPrivate *priv;
+  GtkTreeIter iter;
+
+  g_return_if_fail(ACCOUNTS_IS_UI(accounts_list));
+  g_return_if_fail(ACCOUNT_IS_ITEM(account_item));
+
+  priv = PRIVATE(accounts_list);
+  priv->store = priv->store;
+
+  if (gtk_tree_model_get_iter_first(GTK_TREE_MODEL(priv->store), &iter))
+  {
+    do
+    {
+      AccountItem *item = NULL;
+
+      gtk_tree_model_get(GTK_TREE_MODEL(priv->store), &iter,
+                         COLUMN_ACCOUNT_ITEM, &item,
+                         -1);
+
+      if (item)
+        g_object_unref(item);
+
+      if (item == account_item)
+      {
+        g_signal_handlers_disconnect_matched(
+          item, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
+          name_notify_cb, accounts_list);
+        g_signal_handlers_disconnect_matched(
+          item, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
+          avatar_notify_cb, accounts_list);
+        g_signal_handlers_disconnect_matched(
+          item, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
+          draft_notify_cb, accounts_list);
+        g_signal_handlers_disconnect_matched(
+          item, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
+          enabled_notify_cb, accounts_list);
+        g_signal_handlers_disconnect_matched(
+          item, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
+          display_name_notify_cb, accounts_list);
+        gtk_list_store_remove(priv->store, &iter);
+        break;
+      }
+    }
+    while (gtk_tree_model_iter_next(GTK_TREE_MODEL(priv->store), &iter));
+  }
+
+  if (priv->store->length)
+    select_first_row(GTK_TREE_VIEW(priv->tree_view));
+  else
+  {
+    gtk_widget_show(priv->label);
+    gtk_widget_hide(priv->pannable_area);
+  }
+}
+
+static void
+_accounts_list_add(AccountsList *accounts_list, AccountItem *account_item)
+{
+  AccountsUIPrivate *priv;
+  gpointer service_icon = NULL;
+  gpointer avatar = NULL;
+  gpointer service_name = NULL;
+  gpointer display_name = NULL;
+  gpointer name = NULL;
+  gboolean draft = FALSE;
+  gboolean enabled = FALSE;
+  gboolean supports_avatar = FALSE;
+
+  g_return_if_fail(ACCOUNTS_IS_UI(accounts_list));
+  g_return_if_fail(ACCOUNT_IS_ITEM(account_item));
+
+  priv = PRIVATE(accounts_list);
+
+  g_object_get(account_item,
+               "name", &name,
+               "avatar", &avatar,
+               "enabled", &enabled,
+               "draft", &draft,
+               "display-name", &display_name,
+               "service-name", &service_name,
+               "service-icon", &service_icon,
+               "supports-avatar", &supports_avatar,
+               NULL);
+  g_signal_connect(account_item, "notify::name",
+                   G_CALLBACK(name_notify_cb), accounts_list);
+  g_signal_connect(account_item, "notify::avatar",
+                   G_CALLBACK(avatar_notify_cb), accounts_list);
+  g_signal_connect(account_item, "notify::enabled",
+                   G_CALLBACK(enabled_notify_cb), accounts_list);
+  g_signal_connect(account_item, "notify::draft",
+                   G_CALLBACK(draft_notify_cb), accounts_list);
+  g_signal_connect(account_item, "notify::display-name",
+                   G_CALLBACK(display_name_notify_cb), accounts_list);
+
+  if (!avatar && supports_avatar && priv->avatar_icon)
+    avatar = g_object_ref(priv->avatar_icon);
+
+  gtk_list_store_insert_with_values(priv->store, NULL, 0,
+                                    COLUMN_AVATAR, avatar,
+                                    COLUMN_NAME, name,
+                                    COLUMN_DISPLAY_NAME, display_name,
+                                    COLUMN_SERVICE_NAME, service_name,
+                                    COLUMN_SERVICE_ICON, service_icon,
+                                    COLUMN_ENABLED, enabled,
+                                    COLUMN_DRAFT, draft,
+                                    COLUMN_ACCOUNT_ITEM, account_item,
+                                    -1);
+  g_free(name);
+  g_free(display_name);
+  g_free(service_name);
+
+  if (avatar)
+    g_object_unref(avatar);
+
+  if (service_icon)
+    g_object_unref(service_icon);
+
+  if (priv->store->length == 1)
+  {
+    gtk_widget_hide(priv->label);
+    gtk_widget_show(priv->pannable_area);
+    select_first_row(GTK_TREE_VIEW(priv->tree_view));
+  }
+}
+
 static void
 accounts_list_iface_init(AccountsListIface *iface)
 {
-  iface->add = accounts_list_add;
-  iface->get_all = accounts_list_get_all;
-  iface->remove = accounts_list_remove;
+  iface->add = _accounts_list_add;
+  iface->get_all = _accounts_list_get_all;
+  iface->remove = _accounts_list_remove;
 }
 
 static void
@@ -726,8 +899,8 @@ accounts_ui_init(AccountsUI *ui)
     GTK_TREE_SORTABLE(priv->store), COLUMN_NAME,
     sort_func, GINT_TO_POINTER(COLUMN_NAME), NULL);
   gtk_tree_sortable_set_sort_func(
-    GTK_TREE_SORTABLE(priv->store), COLUMN_3,
-    sort_func, GINT_TO_POINTER(COLUMN_3), NULL);
+    GTK_TREE_SORTABLE(priv->store), COLUMN_SERVICE_NAME,
+    sort_func, GINT_TO_POINTER(COLUMN_SERVICE_NAME), NULL);
   gtk_tree_sortable_set_sort_func(
     GTK_TREE_SORTABLE(priv->store), COLUMN_ENABLED,
     sort_func, GINT_TO_POINTER(COLUMN_ENABLED), NULL);
@@ -755,8 +928,9 @@ accounts_ui_init(AccountsUI *ui)
                           "xpad", 16,
                           NULL);
   gtk_tree_view_column_pack_start(column, renderer, FALSE);
-  gtk_tree_view_column_add_attribute(column, renderer, "pixbuf", COLUMN_4);
-  gtk_tree_view_column_set_sort_column_id(column, COLUMN_3);
+  gtk_tree_view_column_add_attribute(column, renderer, "pixbuf",
+                                     COLUMN_SERVICE_ICON);
+  gtk_tree_view_column_set_sort_column_id(column, COLUMN_SERVICE_NAME);
   gtk_tree_view_append_column(GTK_TREE_VIEW(tree_view), column);
 
   column = g_object_new(GTK_TYPE_TREE_VIEW_COLUMN,
@@ -1025,4 +1199,11 @@ accounts_ui_dialogs_get_new_account(GtkWidget *accounts_ui,
   }
 
   return wizard;
+}
+
+gboolean
+accounts_ui_get_is_empty(GtkWidget *accounts_ui)
+{
+  return gtk_widget_get_visible(PRIVATE(accounts_ui)
+                                ->label);
 }
