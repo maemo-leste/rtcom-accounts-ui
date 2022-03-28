@@ -23,6 +23,10 @@
 #include <gdk/gdkx.h>
 #include <hildon/hildon.h>
 
+#include <errno.h>
+#include <libintl.h>
+#include <sys/vfs.h>
+
 #include "accounts-wizard-dialog.h"
 
 #include "accounts-ui.h"
@@ -596,11 +600,11 @@ status_data_func(GtkTreeViewColumn *tree_column, GtkCellRenderer *cell,
                      -1);
 
   if (draft)
-    span = g_dgettext("osso-applet-accounts", "accounts_fi_draft");
+    span = _("accounts_fi_draft");
   else if (enabled)
-    span = g_dgettext("osso-applet-accounts", "accounts_fi_enabled");
+    span = _("accounts_fi_enabled");
   else
-    span = g_dgettext("osso-applet-accounts", "accounts_fi_disabled");
+    span = _("accounts_fi_disabled");
 
   markup = g_markup_printf_escaped(
       "<span size=\"x-small\" foreground=\"%s\">%s</span>", color, span);
@@ -798,8 +802,7 @@ accounts_ui_init(AccountsUI *ui)
                    G_CALLBACK(tree_view_row_activated_cb), ui);
 
   priv->label = g_object_new(GTK_TYPE_LABEL,
-                             "label", g_dgettext("osso-applet-accounts",
-                                                 "accounts_ia_no_accounts"),
+                             "label", _("accounts_ia_no_accounts"),
                              "xalign", 0.5,
                              "yalign", 0.5,
                              "visible", TRUE,
@@ -816,8 +819,7 @@ accounts_ui_init(AccountsUI *ui)
                    G_CALLBACK(on_content_resize), ui);
   gtk_widget_set_no_show_all(priv->pannable_area, TRUE);
   gtk_widget_show(priv->tree_view);
-  priv->button_new = gtk_button_new_with_label(
-      g_dgettext("osso-applet-accounts", "accounts_bd_new"));
+  priv->button_new = gtk_button_new_with_label(_("accounts_bd_new"));
   gtk_widget_set_size_request(priv->button_new, 160, 70);
   gtk_widget_set_name(priv->button_new, "GtkButton-finger");
   g_signal_connect(priv->button_new, "clicked",
@@ -832,10 +834,7 @@ accounts_ui_init(AccountsUI *ui)
       hildon_get_icon_pixel_size(HILDON_ICON_SIZE_FINGER), 0, NULL);
 
   init_plugins(ui);
-  gtk_window_set_title(GTK_WINDOW(ui),
-                       g_dgettext(
-                         "osso-applet-accounts",
-                         "accounts_ti_accounts"));
+  gtk_window_set_title(GTK_WINDOW(ui), _("accounts_ti_accounts"));
   gtk_window_set_default_size(GTK_WINDOW(ui), -1, 280);
   gtk_window_set_modal(GTK_WINDOW(ui), FALSE);
   gtk_dialog_set_has_separator(GTK_DIALOG(ui), FALSE);
@@ -894,14 +893,10 @@ accounts_ui_dialogs_get_edit_account(GtkWidget *accounts_ui,
                          G_CALLBACK(on_wizard_dialog_destroy), accounts_ui);
         g_object_unref(account);
 
-        if (gtk_widget_get_visible(accounts_ui))
+        if (!gtk_widget_get_visible(accounts_ui) && priv->parent_window)
         {
-          if (priv->parent_window)
-          {
-            gtk_widget_realize(wizard);
-            gdk_window_set_transient_for(wizard->window,
-                                         priv->parent_window);
-          }
+          gtk_widget_realize(wizard);
+          gdk_window_set_transient_for(wizard->window, priv->parent_window);
         }
 
         return wizard;
@@ -943,4 +938,91 @@ accounts_ui_show(GtkWidget *accounts_ui)
   g_return_if_fail(ACCOUNTS_IS_UI(accounts_ui));
 
   PRIVATE(accounts_ui)->show = TRUE;
+}
+
+GtkWidget *
+accounts_ui_dialogs_get_new_account(GtkWidget *accounts_ui,
+                                    const char *service_name)
+{
+  const char *dir;
+  GtkWidget *wizard;
+  AccountsUIPrivate *priv;
+  AccountService *service = NULL;
+  struct statfs stat;
+  int res;
+
+  g_return_val_if_fail(ACCOUNTS_IS_UI(accounts_ui), NULL);
+
+  dir = g_get_home_dir();
+
+  if ((res = statfs(dir, &stat)))
+    g_warning("Error \"%s\" while checking file system", strerror(errno));
+
+  if (res || (((double)stat.f_bavail * 100.0) / ((double)stat.f_blocks) <= 2.0))
+  {
+    GtkWidget *widget;
+
+    if (gtk_widget_get_mapped(accounts_ui))
+      widget = accounts_ui;
+    else
+    {
+      widget = GTK_WIDGET(gtk_window_get_transient_for(
+                            GTK_WINDOW(accounts_ui)));
+    }
+
+    hildon_banner_show_informationf(
+      widget, NULL, dgettext("ke-recv", "cerm_device_memory_full"),
+      _("accounts_fi_device_memory_full_error"));
+
+    return NULL;
+  }
+
+  priv = PRIVATE(accounts_ui);
+
+  if (service_name && *service_name)
+  {
+    GList *plugins = account_plugin_manager_list(priv->account_plugin_manager);
+    GList *p;
+
+    for (p = plugins; p; p = p->next)
+    {
+      if (p->data)
+      {
+        GList *services = account_plugin_list_services(p->data);
+        GList *s;
+
+        for (s = services; s; s = s->next)
+        {
+          if (s->data)
+          {
+            if (!g_strcmp0(account_service_get_name(s->data), service_name))
+            {
+              service = s->data;
+              break;
+            }
+          }
+        }
+
+        g_list_free(services);
+      }
+    }
+
+    g_list_free(plugins);
+  }
+
+  if (!service)
+    return NULL;
+
+  wizard = accounts_wizard_dialog_new(
+      GTK_WINDOW(accounts_ui), priv->account_plugin_manager, NULL, service);
+  g_signal_connect(wizard, "destroy",
+                   G_CALLBACK(on_wizard_dialog_destroy), accounts_ui);
+
+  if (!gtk_widget_get_visible(accounts_ui) && priv->parent_window)
+  {
+    gtk_widget_realize(wizard);
+    gdk_window_set_transient_for(wizard->window, priv->parent_window);
+  }
+
+  return wizard;
 }

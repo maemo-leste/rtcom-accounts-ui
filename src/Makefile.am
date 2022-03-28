@@ -1,6 +1,6 @@
 bin_PROGRAMS = rtcom-accounts-ui
 
-rtcom_accounts_ui_CFLAGS = $(ACCOUNTS_UI_CFLAGS)
+rtcom_accounts_ui_CFLAGS = $(ACCOUNTS_UI_CFLAGS) $(DGETTEXT)
 rtcom_accounts_ui_LDFLAGS = $(ACCOUNTS_UI_LIBS)
 rtcom_accounts_ui_LDADD = librtcom-accounts-ui.la
 
@@ -27,7 +27,7 @@ rtcom_accounts_ui_SOURCES =				\
 
 librtcom_accounts_ui_la_LTLIBRARIES = librtcom-accounts-ui.la
 librtcom_accounts_ui_ladir = $(cplpluginlibdir)
-librtcom_accounts_ui_la_CFLAGS = $(ACCOUNTS_UI_CFLAGS)
+librtcom_accounts_ui_la_CFLAGS = $(ACCOUNTS_UI_CFLAGS) $(DGETTEXT)
 librtcom_accounts_ui_la_LDFLAGS = $(ACCOUNTS_UI_LIBS)
 librtcom_accounts_ui_la_SOURCES =			\
 			accounts-ui.c

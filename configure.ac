@@ -36,11 +36,23 @@ PKG_CHECK_MODULES(ACCOUNTS_UI,
 cplpluginlibdir=`pkg-config hildon-control-panel --variable=pluginlibdir`
 AC_SUBST(cplpluginlibdir)
 
+#+++++++++++++++++++
+# Misc stuff
+#+++++++++++++++++++
+
 AC_DEFINE_UNQUOTED([G_LOG_DOMAIN], "$PACKAGE_NAME", [Default logging facility])
 
+dnl Localization
+GETTEXT_PACKAGE=osso-applet-accounts
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "${GETTEXT_PACKAGE}", [gettext package])
+
+DGETTEXT="-D'_(msgid)'='g_dgettext(GETTEXT_PACKAGE, msgid)'"
+AC_SUBST(DGETTEXT)
+
 AC_OUTPUT([
-Makefile
-src/Makefile
-com.nokia.AccountsUI.service
+	Makefile
+	src/Makefile
+	com.nokia.AccountsUI.service
 ])
 
