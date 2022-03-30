@@ -55,5 +55,6 @@ AC_OUTPUT([
 	lib/Makefile
 	service/Makefile
 	com.nokia.AccountsUI.service
+	rtcom-accounts-ui.pc
 ])
 

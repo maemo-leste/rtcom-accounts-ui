@@ -6,6 +6,6 @@ librtcom_accounts_ui_la_LDFLAGS = $(ACCOUNTS_UI_LIBS)
 librtcom_accounts_ui_la_SOURCES = main.c accounts-ui.c			\
 		accounts-wizard-dialog.c
 
-CLEANFILES = $(BUILT_SOURCES)
+pkginclude_HEADERS = accounts-wizard-dialog.h
 
 MAINTAINERCLEANFILES = Makefile.in
