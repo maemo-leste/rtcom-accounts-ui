@@ -30,7 +30,8 @@ librtcom_accounts_ui_ladir = $(cplpluginlibdir)
 librtcom_accounts_ui_la_CFLAGS = $(ACCOUNTS_UI_CFLAGS) $(DGETTEXT)
 librtcom_accounts_ui_la_LDFLAGS = $(ACCOUNTS_UI_LIBS)
 librtcom_accounts_ui_la_SOURCES =			\
-			accounts-ui.c
+			accounts-ui.c \
+			accounts-wizard-dialog.c
 
 CLEANFILES = $(BUILT_SOURCES)
 

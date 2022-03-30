@@ -326,6 +326,7 @@ accounts_ui_destroy(GtkObject *object)
   GTK_OBJECT_CLASS(accounts_ui_parent_class)->destroy(object);
 }
 
+#ifdef DISABLE_PORTRAIT
 static void
 accounts_ui_realize(GtkWidget *widget)
 {
@@ -342,6 +343,7 @@ accounts_ui_realize(GtkWidget *widget)
   gdk_property_change(widget->window, atom, gdk_x11_xatom_to_atom(XA_CARDINAL),
                       32, GDK_PROP_MODE_REPLACE, (gpointer)&portrait, 1);
 }
+#endif
 
 static void
 accounts_ui_size_request(GtkWidget *widget, GtkRequisition *requisition)
@@ -376,8 +378,9 @@ accounts_ui_class_init(AccountsUIClass *klass)
   object_class->get_property = accounts_ui_get_property;
 
   GTK_OBJECT_CLASS(klass)->destroy = accounts_ui_destroy;
-
+#ifdef DISABLE_PORTRAIT
   widget_class->realize = accounts_ui_realize;
+#endif
   widget_class->size_request = accounts_ui_size_request;
 
   g_object_class_install_property(
