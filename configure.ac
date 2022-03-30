@@ -27,7 +27,8 @@ AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
 
 PKG_CHECK_MODULES(ACCOUNTS_UI,
                   [glib-2.0 hildon-1 libosso telepathy-glib dbus-glib-1 dnl
-                  hildon-control-panel libaccounts xproto])
+                  hildon-control-panel rtcom-accounts-ui-client libaccounts dnl
+                  xproto])
 
 #+++++++++++++++++++
 # Directories setup

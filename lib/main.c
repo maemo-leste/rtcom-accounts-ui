@@ -18,8 +18,7 @@
  */
 
 #include <libosso.h>
-
-#include "client.h"
+#include <rtcom-accounts-ui-client/client.h>
 
 static void
 accounts_client_status_update(AuicClient *client)
