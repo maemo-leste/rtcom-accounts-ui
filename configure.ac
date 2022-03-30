@@ -52,7 +52,6 @@ AC_SUBST(DGETTEXT)
 
 AC_OUTPUT([
 	Makefile
-	client/Makefile
 	lib/Makefile
 	service/Makefile
 	com.nokia.AccountsUI.service
