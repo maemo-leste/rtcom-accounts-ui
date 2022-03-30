@@ -77,7 +77,7 @@ create_account_instance(AuiService *service, guint xid, GError **error)
   AuiServicePrivate *priv = PRIVATE(service);
   AuiInstance *instance = aui_instance_new(priv->dbus_gconnection, xid);
 
-  g_return_val_if_fail(!instance, NULL);
+  g_return_val_if_fail(instance, NULL);
 
   g_signal_connect(instance, "closed",
                    G_CALLBACK(instance_closed_cb), service);

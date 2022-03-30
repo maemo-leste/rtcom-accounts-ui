@@ -1,29 +1,26 @@
-bin_PROGRAMS = rtcom-accounts-ui
+lib_LTLIBRARIES = librtcom-accounts-ui-client.la
+librtcom_accounts_ui_client_la_CFLAGS = $(ACCOUNTS_UI_CFLAGS) $(DGETTEXT)
+librtcom_accounts_ui_client_la_LDFLAGS = $(ACCOUNTS_UI_LIBS)
+librtcom_accounts_ui_client_la_SOURCES = client.c
 
-rtcom_accounts_ui_CFLAGS = -I$(top_srcdir)/lib/				\
-		$(ACCOUNTS_UI_CFLAGS) $(DGETTEXT)
-rtcom_accounts_ui_LDFLAGS = $(ACCOUNTS_UI_LIBS)
-rtcom_accounts_ui_LDADD = $(top_builddir)/lib/librtcom-accounts-ui.la
+librtcom_accounts_ui_client_includedir = $(includedir)/@PACKAGE_NAME@-client
+librtcom_accounts_ui_client_include_HEADERS = client.h
+
 BUILT_SOURCES =								\
 		dbus-glib-marshal-aui-service.h				\
 		dbus-glib-marshal-aui-instance.h
 
 dbus-glib-marshal-aui-service.h: $(top_srcdir)/xml/aui-service.xml
 	$(DBUS_BINDING_TOOL) --prefix=aui_service			\
-		--mode=glib-server $< > xgen-$(@F)			\
+		--mode=glib-client $< > xgen-$(@F)			\
 	&& ( cmp -s xgen-$(@F) $@ || cp xgen-$(@F) $@ )			\
 	&& rm -f xgen-$(@F)
 
 dbus-glib-marshal-aui-instance.h: $(top_srcdir)/xml/aui-instance.xml
 	$(DBUS_BINDING_TOOL) --prefix=aui_instance			\
-		--mode=glib-server $< > xgen-$(@F)			\
+		--mode=glib-client $< > xgen-$(@F)			\
 	&& ( cmp -s xgen-$(@F) $@ || cp xgen-$(@F) $@ )			\
 	&& rm -f xgen-$(@F)
-
-rtcom_accounts_ui_SOURCES =						\
-			main.c						\
-			aui-service.c					\
-			aui-instance.c
 
 CLEANFILES = $(BUILT_SOURCES)
 

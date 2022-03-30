@@ -27,8 +27,7 @@ AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
 
 PKG_CHECK_MODULES(ACCOUNTS_UI,
                   [glib-2.0 hildon-1 libosso telepathy-glib dbus-glib-1 dnl
-                  hildon-control-panel rtcom-accounts-ui-client libaccounts dnl
-                  xproto])
+                  hildon-control-panel libaccounts xproto])
 
 #+++++++++++++++++++
 # Directories setup
@@ -36,6 +35,9 @@ PKG_CHECK_MODULES(ACCOUNTS_UI,
 
 cplpluginlibdir=`pkg-config hildon-control-panel --variable=pluginlibdir`
 AC_SUBST(cplpluginlibdir)
+
+cplplugindesktopentrydir=`pkg-config hildon-control-panel --variable=plugindesktopentrydir`
+AC_SUBST(cplplugindesktopentrydir)
 
 #+++++++++++++++++++
 # Misc stuff
@@ -53,9 +55,11 @@ AC_SUBST(DGETTEXT)
 
 AC_OUTPUT([
 	Makefile
+	client/Makefile
 	lib/Makefile
 	service/Makefile
 	com.nokia.AccountsUI.service
 	rtcom-accounts-ui.pc
+	rtcom-accounts-ui-client.pc
 ])
 

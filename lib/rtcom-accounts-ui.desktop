@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=accounts_ap_accounts
+Type=HildonControlPanelPlugin
+Icon=control_accounts
+X-control-panel-plugin=librtcom-accounts-ui.so
+Categories=connectivity
+X-Text-Domain=osso-applet-accounts

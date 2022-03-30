@@ -308,9 +308,7 @@ set_property(GObject *object, guint property_id, const GValue *value,
     }
     default:
     {
-      G_OBJECT_WARN_INVALID_PROPERTY_ID(object,
-                                        property_id,
-                                        pspec);
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
       break;
     }
   }
@@ -338,18 +336,19 @@ aui_instance_class_init(AuiInstanceClass *klass)
       G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
   g_object_class_install_property(
     object_class, PROP_PARENT_XID,
-    g_param_spec_uint("parent-xid",
-                      "parent-xid",
-                      "parent-xid",
-                      0, G_MAXUINT32, 0,
-                      G_PARAM_WRITABLE));
+    g_param_spec_uint(
+      "parent-xid",
+      "parent-xid",
+      "parent-xid",
+      0, G_MAXUINT32, 0,
+      G_PARAM_WRITABLE));
   g_object_class_install_property(
     object_class, PROP_VISIBLE,
-    g_param_spec_boolean("visible",
-                         "visible",
-                         "visible", TRUE,
-                         G_PARAM_WRITABLE |
-                         G_PARAM_READABLE));
+    g_param_spec_boolean(
+      "visible",
+      "visible",
+      "visible", TRUE,
+      G_PARAM_WRITABLE | G_PARAM_READABLE));
   signals[CLOSED] = g_signal_new(
       "closed", G_TYPE_FROM_CLASS(klass),
       G_SIGNAL_RUN_LAST,
@@ -365,9 +364,7 @@ aui_instance_class_init(AuiInstanceClass *klass)
       1, TP_HASH_TYPE_STRING_VARIANT_MAP);
 
   dbus_g_object_type_install_info(
-    G_TYPE_FROM_CLASS(klass),
-    &
-    dbus_glib_aui_instance_object_info);
+    G_TYPE_FROM_CLASS(klass), &dbus_glib_aui_instance_object_info);
 }
 
 static void
@@ -399,7 +396,8 @@ aui_instance_new(DBusGConnection *dbus_gconnection,
   return g_object_new(AUI_TYPE_INSTANCE,
                       "dbus-connection",
                       dbus_gconnection,
-                      "parent-xid", xid, NULL);
+                      "parent-xid", xid,
+                      NULL);
 }
 
 const gchar *
@@ -413,27 +411,33 @@ aui_instance_get_object_path(AuiInstance *instance)
 GHashTable *
 aui_instance_get_properties(AuiInstance *instance)
 {
-  GValue v;
+  GValue *v;
   AuiInstancePrivate *priv;
   GHashTable *properties;
 
   g_return_val_if_fail(AUI_IS_INSTANCE(instance), NULL);
 
   priv = PRIVATE(instance);
-  g_hash_table_new((GHashFunc)&g_str_hash, (GEqualFunc)&g_str_equal);
+  properties = g_hash_table_new_full((GHashFunc)&g_str_hash,
+                                     (GEqualFunc)&g_str_equal,
+                                     (GDestroyNotify)g_free,
+                                     (GDestroyNotify)g_free);
+  v = g_new0(GValue, 1);
+  g_value_init(v, G_TYPE_UINT);
+  g_value_set_uint(v, priv->parent_xid);
+  g_hash_table_insert(properties,
+                      g_strdup("com.nokia.Accounts.UI.ParentXid"), v);
 
-  g_value_init(&v, G_TYPE_UINT);
-  g_value_set_uint(&v, priv->parent_xid);
-  g_hash_table_insert(properties, "com.nokia.Accounts.UI.ParentXid", &v);
-
-  g_value_init(&v, G_TYPE_BOOLEAN);
+  v = g_new0(GValue, 1);
+  g_value_init(v, G_TYPE_BOOLEAN);
 
   if (priv->accounts_ui)
-    g_value_set_boolean(&v, gtk_widget_get_visible(priv->accounts_ui));
+    g_value_set_boolean(v, gtk_widget_get_visible(priv->accounts_ui));
   else
-    g_value_set_boolean(&v, FALSE);
+    g_value_set_boolean(v, FALSE);
 
-  g_hash_table_insert(properties, "com.nokia.Accounts.UI.Visible", &v);
+  g_hash_table_insert(properties,
+                      g_strdup("com.nokia.Accounts.UI.Visible"), v);
 
   return properties;
 }
@@ -441,7 +445,7 @@ aui_instance_get_properties(AuiInstance *instance)
 void
 aui_instance_action_open_accounts_list(AuiInstance *instance, GError **error)
 {
-  AuiInstancePrivate *priv;
+  AuiInstancePrivate *priv = PRIVATE(instance);
 
   g_return_if_fail(AUI_IS_INSTANCE(instance));
   g_return_if_fail(ACCOUNTS_IS_UI(priv->accounts_ui));

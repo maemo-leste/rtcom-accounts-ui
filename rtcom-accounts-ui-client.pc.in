@@ -1,0 +1,12 @@
+prefix=/usr
+exec_prefix=@prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: @PACKAGE_NAME@-client
+Description: Client library to control AccountsUI.
+Version: @PACKAGE_VERSION@
+Requires: gtk+-2.0
+Requires.private: dbus-glib-1, glib-2.0, gobject-2.0
+Libs: -L${libdir} -l@PACKAGE_NAME@-client
+Cflags: -I${includedir}

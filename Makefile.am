@@ -1,4 +1,4 @@
-SUBDIRS = lib service
+SUBDIRS = client lib service
 
 servicesdir = $(datadir)/dbus-1/services/
 services_DATA = com.nokia.AccountsUI.service
@@ -8,4 +8,4 @@ MAINTAINERCLEANFILES = Makefile.in configure compile config.guess	\
 		       install-sh ltmain.sh missing aclocal.m4
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = rtcom-accounts-ui.pc
+pkgconfig_DATA = rtcom-accounts-ui.pc rtcom-accounts-ui-client.pc
