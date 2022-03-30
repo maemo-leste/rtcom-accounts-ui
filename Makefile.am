@@ -1,4 +1,4 @@
-SUBDIRS = src
+SUBDIRS = lib service
 
 servicesdir = $(datadir)/dbus-1/services/
 services_DATA = com.nokia.AccountsUI.service
