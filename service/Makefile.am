@@ -2,7 +2,8 @@ bin_PROGRAMS = rtcom-accounts-ui
 
 rtcom_accounts_ui_CFLAGS = -I$(top_srcdir)/lib/				\
 		$(ACCOUNTS_UI_CFLAGS) $(DGETTEXT)
-rtcom_accounts_ui_LDFLAGS = $(ACCOUNTS_UI_LIBS)
+rtcom_accounts_ui_LDFLAGS = -Wl,--as-needed $(ACCOUNTS_UI_LIBS)		\
+		-Wl,--no-undefined
 rtcom_accounts_ui_LDADD = $(top_builddir)/lib/librtcom-accounts-ui.la
 BUILT_SOURCES =								\
 		dbus-glib-marshal-aui-service.h				\
