@@ -655,6 +655,20 @@ on_plugin_initialized(AccountPlugin *plugin, GParamSpec *pspec, AccountsUI *ui)
   }
 }
 
+static gboolean
+idle_plugin_initialization_done(gpointer user_data)
+{
+  AccountsUI *ui = user_data;
+
+  /* we must do the last call in idle, otherwise the caller will not have a
+   * a chance to call accounts_ui_show() if there are no plugins or all plugins
+   * are immediately initialized */
+  plugin_initialization_done(ui);
+  g_object_unref(ui);
+
+  return G_SOURCE_REMOVE;
+}
+
 static void
 init_plugins(AccountsUI *ui)
 {
@@ -692,14 +706,13 @@ init_plugins(AccountsUI *ui)
         plugin_initialization_done(ui);
     }
 
-    plugin_initialization_done(ui);
     g_list_free(plugins);
   }
   else
-  {
-    plugin_initialization_done(ui);
     gtk_widget_set_sensitive(priv->button_new, FALSE);
-  }
+
+  g_idle_add_full(G_PRIORITY_HIGH_IDLE, idle_plugin_initialization_done,
+                  g_object_ref(ui), NULL);
 }
 
 static gint
