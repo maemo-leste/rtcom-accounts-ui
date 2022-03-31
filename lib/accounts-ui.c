@@ -1185,10 +1185,10 @@ accounts_ui_dialogs_get_new_account(GtkWidget *accounts_ui,
     }
 
     g_list_free(plugins);
-  }
 
-  if (!service)
-    return NULL;
+    if (!service)
+      return NULL;
+  }
 
   wizard = accounts_wizard_dialog_new(
       GTK_WINDOW(accounts_ui), priv->account_plugin_manager, NULL, service);
