@@ -222,7 +222,7 @@ confirm_delete(GtkDialog *dialog)
   else
     format = _("accounts_fi_delete_account_offline");
 
-  g_object_get(priv->account_item, "name", &name, 0);
+  g_object_get(priv->account_item, "name", &name, NULL);
 
   if (!name)
     name = g_strdup("");
@@ -250,8 +250,8 @@ _operation_async(AccountEditContext *context, GError *error, GtkDialog *dialog)
   if (priv->button_sign_in)
     gtk_widget_set_sensitive(priv->button_sign_in, TRUE);
 
-  if (!error || (error->domain == ACCOUNT_ERROR) &&
-      (error->code == ACCOUNT_ERROR_CONNECTION_FAILED))
+  if (!error || ((error->domain == ACCOUNT_ERROR) &&
+                 (error->code == ACCOUNT_ERROR_CONNECTION_FAILED)))
   {
     gtk_dialog_response(dialog, GTK_RESPONSE_OK);
   }
@@ -352,8 +352,9 @@ create_dialog:
   }
   else if (dialog)
   {
-    gchar *login_text = g_strdup_printf(_("accountwizard_ti_login"),
-                                        service->display_name);
+    const char *msgid = _("accountwizard_ti_login");
+    gchar *login_text = g_strdup_printf(msgid, service->display_name);
+
     priv->dialog = dialog;
     gtk_container_remove(GTK_CONTAINER(wizard), priv->vbox);
     gtk_container_add(GTK_CONTAINER(wizard), priv->dialog);
@@ -552,12 +553,12 @@ accounts_wizard_dialog_constructor(GType type, guint n_construct_properties,
 
       cell = gtk_cell_renderer_pixbuf_new();
       column = gtk_tree_view_column_new_with_attributes(
-          "Icon", cell, "pixbuf", 1, NULL);
+          "Icon", cell, "pixbuf", COLUMN_ICON, NULL);
       gtk_tree_view_append_column(GTK_TREE_VIEW(priv->tree_view), column);
 
       cell = gtk_cell_renderer_text_new();
       column = gtk_tree_view_column_new_with_attributes(
-          "Service", cell, "text", 0, 0);
+          "Service", cell, "text", COLUMN_NAME, NULL);
       gtk_tree_view_append_column(GTK_TREE_VIEW(priv->tree_view), column);
 
       pannable_area = g_object_new(HILDON_TYPE_PANNABLE_AREA,

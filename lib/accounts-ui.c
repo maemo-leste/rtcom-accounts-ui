@@ -828,7 +828,7 @@ user_name_data_func(GtkTreeViewColumn *tree_column, GtkCellRenderer *cell,
       g_object_set(cell, "text", name, NULL);
   }
   else if (display_name && *display_name)
-    g_object_set(cell, "text");
+    g_object_set(cell, "text", NULL);
   else
     g_object_set(cell, "text", "", NULL);
 
@@ -1060,9 +1060,9 @@ accounts_ui_dialogs_get_edit_account(GtkWidget *accounts_ui,
       gtk_tree_model_get(GTK_TREE_MODEL(priv->store), &iter,
                          COLUMN_ACCOUNT_ITEM, &account,
                          -1);
-      g_object_get(account, "name", &_user_name, 0);
+      g_object_get(account, "name", &_user_name, NULL);
       service = account_item_get_service(account);
-      g_object_get(service, "name", &_service_name, 0);
+      g_object_get(service, "name", &_service_name, NULL);
 
       if (!g_strcmp0(_user_name, user_name) &&
           !g_strcmp0(_service_name, service_name))
