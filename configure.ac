@@ -19,15 +19,18 @@ AC_SUBST(X_CFLAGS)
 
 PKG_PROG_PKG_CONFIG
 
+PKG_CHECK_MODULES(ACCOUNTS_UI,
+                  [hildon-1 libosso telepathy-glib dbus-glib-1 dnl
+                  hildon-control-panel libaccounts xproto])
+PKG_CHECK_MODULES(ACCOUNTS_WIDGETS,
+                  [dbus-glib-1 hildon-1 telepathy-glib libaccounts xproto])
+
 #+++++++++++++++
 # Misc programs 
 #+++++++++++++++
 
 AC_PATH_PROG(DBUS_BINDING_TOOL, dbus-binding-tool)
-
-PKG_CHECK_MODULES(ACCOUNTS_UI,
-                  [glib-2.0 hildon-1 libosso telepathy-glib dbus-glib-1 dnl
-                  hildon-control-panel libaccounts xproto])
+AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 
 #+++++++++++++++++++
 # Directories setup
@@ -58,6 +61,7 @@ AC_OUTPUT([
 	client/Makefile
 	lib/Makefile
 	service/Makefile
+	widgets/Makefile
 	com.nokia.AccountsUI.service
 	rtcom-accounts-ui.pc
 	rtcom-accounts-ui-client.pc

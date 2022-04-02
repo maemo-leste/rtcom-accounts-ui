@@ -1,4 +1,4 @@
-SUBDIRS = client lib service
+SUBDIRS = client lib service widgets
 
 servicesdir = $(datadir)/dbus-1/services/
 services_DATA = com.nokia.AccountsUI.service
