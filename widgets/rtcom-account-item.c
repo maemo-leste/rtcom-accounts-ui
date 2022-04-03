@@ -229,16 +229,6 @@ tp_account_unref(RtcomAccountItem *item)
   g_signal_handlers_disconnect_matched(
     item->account, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
     on_enabled_changed, item);
-
-  /*
-     g_signal_handlers_disconnect_matched(
-     item->account,
-     G_SIGNAL_MATCH_DATA|G_SIGNAL_MATCH_FUNC,
-     0,
-     0,
-     0,
-     on_flag_changed,
-     item);*/
   g_signal_handlers_disconnect_matched(
     item->account, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
     on_avatar_changed, item);
@@ -756,7 +746,7 @@ static void
 service_connected(GObject *object, TpConnection *connection, GError *error,
                   gpointer user_data)
 {
-  g_signal_emit_by_name(object, "verified", error, user_data);
+  g_signal_emit_by_name(object, "verified", error);
 }
 
 void

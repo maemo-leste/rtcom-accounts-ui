@@ -63,7 +63,7 @@ struct _RtcomAccountPlugin
     AccountPlugin parent_instance;
 
     /*< protected >*/
-    GHashTable *profiles;
+    GHashTable *protocols;
     /* The name must be set in the instance init function of the derived class */
     gchar *name;
 

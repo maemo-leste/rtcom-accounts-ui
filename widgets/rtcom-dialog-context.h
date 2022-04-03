@@ -61,8 +61,9 @@ void rtcom_dialog_context_set_start_page(RtcomDialogContext * dialog_context, Gt
 void rtcom_dialog_context_take_obj (RtcomDialogContext *dialog_context, GObject *object);
 void rtcom_dialog_context_remove_obj (RtcomDialogContext *dialog_context, GObject *object);
 
+/*
 void rtcom_dialog_context_truncate (RtcomDialogContext *dialog_context);
-
+*/
 gboolean rtcom_dialog_context_finish (AccountDialogContext *dialog_context, GError **error);
 
 G_END_DECLS
