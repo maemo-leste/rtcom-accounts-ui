@@ -637,8 +637,8 @@ accounts_wizard_dialog_class_init(AccountsWizardDialogClass *klass)
                  G_STRUCT_OFFSET(AccountsWizardDialogClass, delete_account),
                  NULL, NULL,
                  g_cclosure_marshal_VOID__POINTER,
-                 G_TYPE_NONE, 1,
-                 G_TYPE_POINTER);
+                 G_TYPE_NONE,
+                 1, G_TYPE_POINTER);
 }
 
 static void

@@ -404,6 +404,8 @@ rtcom_account_item_set_property(GObject *object, guint property_id,
         tp_proxy_prepare_async(
           TP_PROXY(item->account), account_features, ready_cb, item);
       }
+
+      break;
     }
     default:
     {
