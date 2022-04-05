@@ -4,7 +4,8 @@ librtcom_accounts_ui_client_la_LDFLAGS = -Wl,--as-needed		\
 		$(ACCOUNTS_UI_LIBS) -Wl,--no-undefined
 librtcom_accounts_ui_client_la_SOURCES = client.c
 
-librtcom_accounts_ui_client_includedir = $(includedir)/@PACKAGE_NAME@-client
+librtcom_accounts_ui_client_includedir =				\
+		$(includedir)/@PACKAGE_NAME@-ui-client
 librtcom_accounts_ui_client_include_HEADERS = client.h
 
 BUILT_SOURCES =								\

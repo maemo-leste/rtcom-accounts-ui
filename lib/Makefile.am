@@ -9,7 +9,7 @@ librtcom_accounts_ui_la_LIBADD =					\
 librtcom_accounts_ui_la_SOURCES = main.c accounts-ui.c			\
 		accounts-wizard-dialog.c
 
-librtcom_accounts_ui_includedir = $(includedir)/@PACKAGE_NAME@
+librtcom_accounts_ui_includedir = $(includedir)/@PACKAGE_NAME@-ui
 librtcom_accounts_ui_include_HEADERS = accounts-wizard-dialog.h
 
 cplplugindesktopentry_DATA = rtcom-accounts-ui.desktop

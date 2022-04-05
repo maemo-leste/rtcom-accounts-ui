@@ -2,9 +2,9 @@ prefix=@prefix@
 includedir=@includedir@
 libdir=@cplpluginlibdir@
 
-Name: @PACKAGE_NAME@
+Name: @PACKAGE_NAME@-ui
 Description: Accounts dialog.
 Version: @PACKAGE_VERSION@
-Requires: gtk+-2.0 hildon-1 libosso-abook-1.0 libosso libglade-2.0
-Libs: -L${libdir} -lrtcom-accounts-ui
+Requires: gtk+-2.0 hildon-1 libosso libglade-2.0
+Libs: -L${libdir} -l@PACKAGE_NAME@-ui
 Cflags: -I${includedir}

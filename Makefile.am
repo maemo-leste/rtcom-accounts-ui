@@ -8,4 +8,5 @@ MAINTAINERCLEANFILES = Makefile.in configure compile config.guess	\
 		       install-sh ltmain.sh missing aclocal.m4
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = rtcom-accounts-ui.pc rtcom-accounts-ui-client.pc
+pkgconfig_DATA = rtcom-accounts-ui.pc rtcom-accounts-ui-client.pc	\
+	rtcom-accounts-widgets.pc

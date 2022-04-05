@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=@libdir@
+includedir=@includedir@
+
+Name: @PACKAGE_NAME@-widgets
+Description:  Account manager library for Telepathy accounts
+Requires: hildon-1, libaccounts, telepathy-glib
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -l@PACKAGE_NAME@-widgets
+

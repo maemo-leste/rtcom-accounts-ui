@@ -42,7 +42,6 @@ Description: Development files for the accounts applet
 
 Package: librtcom-accounts-ui-client0
 Section: libs
-Priority: optional
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
@@ -61,3 +60,22 @@ Description: Client library to control AccountsUI, development files
  .
  Contains the header files and static libraries
 
+Package: librtcom-accounts-widgets0
+Section: libs
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: RTC accounts library
+ A widget and utility library for convenient building of RTC account
+ plugins
+
+Package: librtcom-accounts-widgets-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: librtcom-accounts-widgets0 (= ${binary:Version}), libhildon1-dev, libaccounts-dev
+Description: Development files for the RTC accounts library
+ A widget and utility library for convenient building of RTC account
+ plugins
+ .
+ Contains the header files and static libraries

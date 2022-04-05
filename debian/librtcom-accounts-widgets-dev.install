@@ -1,0 +1,4 @@
+/usr/include/librtcom-accounts-widgets
+/usr/lib/*/pkgconfig/rtcom-accounts-widgets.pc
+/usr/lib/*/librtcom-accounts-widgets.so
+/usr/lib/*/librtcom-accounts-widgets.a
