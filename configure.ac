@@ -23,7 +23,8 @@ PKG_CHECK_MODULES(ACCOUNTS_UI,
                   [hildon-1 libosso telepathy-glib dbus-glib-1 dnl
                   hildon-control-panel libaccounts xproto])
 PKG_CHECK_MODULES(ACCOUNTS_WIDGETS,
-                  [dbus-glib-1 hildon-1 telepathy-glib libaccounts xproto])
+                  [dbus-glib-1 hildon-1 telepathy-glib libaccounts dnl
+                  xproto conic])
 
 #+++++++++++++++
 # Misc programs 

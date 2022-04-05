@@ -11,7 +11,8 @@ librtcom_accounts_widgets_la_SOURCES =					\
 		rtcom-account-plugin.c \
 		rtcom-dialog-context.c \
 		rtcom-page.c \
-		rtcom-widget.c
+		rtcom-widget.c \
+		rtcom-account-service.c
 
 #librtcom_accounts_widgets_includedir = $(includedir)/@PACKAGE_NAME@
 #librtcom_accounts_widgets_include_HEADERS = accounts-wizard-dialog.h

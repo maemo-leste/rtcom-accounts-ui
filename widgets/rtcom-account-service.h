@@ -53,8 +53,6 @@ struct _RtcomAccountService
 
     /*< private >*/
     TpProtocol *protocol;
-    TpConnectionManager *conn_mgr;
-    const TpConnectionManagerProtocol *cm_protocol;
     gchar *successful_msg;
 };
 
