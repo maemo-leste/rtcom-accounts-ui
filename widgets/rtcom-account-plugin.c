@@ -96,6 +96,14 @@ on_account_removed_cb(TpAccountManager *am, TpAccount *account,
   }
 }
 
+static gchar *
+get_service_id(TpAccount *account)
+{
+  return g_strdup_printf("%s/%s",
+                         tp_account_get_cm_name(account),
+                         tp_account_get_protocol_name(account));
+}
+
 static void
 on_account_validity_changed_cb(TpAccountManager *am, TpAccount *account,
                                gboolean valid, gpointer user_data)
@@ -107,24 +115,21 @@ on_account_validity_changed_cb(TpAccountManager *am, TpAccount *account,
     if (!rtcom_account_plugin_get_account_by_name(
           plugin, tp_account_get_path_suffix(account)))
     {
+      RtcomAccountService *service;
       AccountsList *accounts_list = NULL;
-      const gchar *protocol_name = tp_account_get_protocol_name(account);
+      gchar *service_id = get_service_id(account);
 
-      if (protocol_name)
+      service = g_hash_table_lookup(plugin->services, service_id);
+      g_free(service_id);
+
+      if (service)
       {
-        RtcomAccountService *service;
+        RtcomAccountItem *item = rtcom_account_item_new(account, service);
 
-        service = g_hash_table_lookup(plugin->protocols, protocol_name);
-
-        if (service)
-        {
-          RtcomAccountItem *item = rtcom_account_item_new(account, service);
-
-          g_object_get(plugin, "accounts-list", &accounts_list, NULL);
-          accounts_list_add(accounts_list, ACCOUNT_ITEM(item));
-          g_object_unref(accounts_list);
-          g_object_unref(item);
-        }
+        g_object_get(plugin, "accounts-list", &accounts_list, NULL);
+        accounts_list_add(accounts_list, ACCOUNT_ITEM(item));
+        g_object_unref(accounts_list);
+        g_object_unref(item);
       }
     }
   }
@@ -137,10 +142,10 @@ rtcom_account_plugin_dispose(GObject *object)
 {
   RtcomAccountPlugin *plugin = RTCOM_ACCOUNT_PLUGIN(object);
 
-  if (plugin->protocols)
+  if (plugin->services)
   {
-    g_hash_table_destroy(plugin->protocols);
-    plugin->protocols = NULL;
+    g_hash_table_destroy(plugin->services);
+    plugin->services = NULL;
   }
 
   if (plugin->manager)
@@ -199,20 +204,22 @@ rtcom_account_plugin_setup(AccountPlugin *account_plugin,
 
   for (l = accounts; l; l = l->next)
   {
-    const gchar *protocol = tp_account_get_protocol_name(l->data);
+    gchar *service_id = get_service_id(l->data);
     GHashTableIter iter;
     const gchar *key;
     RtcomAccountService *svc;
 
-    g_hash_table_iter_init(&iter, plugin->protocols);
+    g_hash_table_iter_init(&iter, plugin->services);
 
     while (g_hash_table_iter_next(&iter, (gpointer *)&key, (gpointer *)&svc))
     {
-      if (protocol && !strcmp(protocol, key))
+      if (!strcmp(service_id, key))
       {
         accounts_list_add(accounts_list,
                           ACCOUNT_ITEM(rtcom_account_item_new(l->data, svc)));
       }
+
+      g_free(service_id);
     }
   }
 
@@ -269,7 +276,7 @@ rtcom_account_plugin_list_services(AccountPlugin *account_plugin)
 {
   RtcomAccountPlugin *plugin = RTCOM_ACCOUNT_PLUGIN(account_plugin);
 
-  return g_hash_table_get_values(plugin->protocols);
+  return g_hash_table_get_values(plugin->services);
 }
 
 static void
@@ -328,7 +335,7 @@ rtcom_account_plugin_init(RtcomAccountPlugin *plugin)
   g_signal_connect(plugin->manager, "account-removed",
                    G_CALLBACK(on_account_removed_cb), plugin);
 
-  plugin->protocols = g_hash_table_new_full(
+  plugin->services = g_hash_table_new_full(
       (GHashFunc)&g_str_hash,
       (GEqualFunc)&g_str_equal,
       (GDestroyNotify)&g_free,
@@ -342,7 +349,7 @@ rtcom_account_plugin_add_service(RtcomAccountPlugin *plugin, const gchar *name)
 {
   RtcomAccountService *service = rtcom_account_service_new(name, plugin);
 
-  g_hash_table_insert(plugin->protocols, g_strdup(name), service);
+  g_hash_table_insert(plugin->services, g_strdup(name), service);
 
   return service;
 }

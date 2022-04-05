@@ -63,7 +63,8 @@ struct _RtcomAccountPlugin
     AccountPlugin parent_instance;
 
     /*< protected >*/
-    GHashTable *protocols;
+    /** key is <cm_name>/<protocol_name> */
+    GHashTable *services;
     /* The name must be set in the instance init function of the derived class */
     gchar *name;
 
