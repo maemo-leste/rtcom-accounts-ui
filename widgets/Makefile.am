@@ -17,6 +17,7 @@ librtcom_accounts_widgets_la_SOURCES =					\
 		rtcom-username.c					\
 		rtcom-login.c						\
 		rtcom-param-string.c					\
+		rtcom-entry-validation.c				\
 		rtcom-account-service.c
 
 librtcom_accounts_widgets_includedir =					\
