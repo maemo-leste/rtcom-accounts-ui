@@ -55,7 +55,7 @@ struct _RtcomUsername
     GtkWidget *at_label;
     GtkWidget *server_editor;
 
-    McProfile *profile;
+    TpProtocol *protocol;
 
     guint filled_fields;
 

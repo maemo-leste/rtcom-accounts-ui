@@ -19,8 +19,10 @@
 #ifndef _RTCOM_WIDGET_H_
 #define _RTCOM_WIDGET_H_
 
+#include "config.h"
+
 #include <gtk/gtkwidget.h>
-#include <config.h>
+
 #include "rtcom-account-item.h"
 
 G_BEGIN_DECLS
@@ -57,7 +59,7 @@ struct _RtcomWidgetIface
 #define RTCOM_DEFINE_WIDGET_TYPE(TN, t_n, T_P) \
     _RTCOM_DEFINE_TYPE_EXTENDED_BEGIN (TN, t_n, T_P, 0) \
     G_IMPLEMENT_INTERFACE (RTCOM_TYPE_WIDGET, rtcom_widget_init) \
-    _G_DEFINE_TYPE_EXTENDED_END()
+    _RTCOM_DEFINE_TYPE_EXTENDED_END()
 
 /* this is the GType _G_DEFINE_TYPE_EXTENDED_BEGIN with the following changes:
  *  - the class_intern_init() also calls rtcom_widget_class_init at the end
@@ -97,6 +99,13 @@ type_name##_get_type (void) \
                                        (GInstanceInitFunc)type_name##_intern_init, \
                                        (GTypeFlags) flags); \
       { /* custom code follows */
+#define _RTCOM_DEFINE_TYPE_EXTENDED_END() \
+        /* following custom code */ \
+      } \
+      g_once_init_leave (&g_define_type_id__volatile, g_define_type_id); \
+    } \
+  return g_define_type_id__volatile; \
+} /* closes type_name##_get_type() */
 
 GType  rtcom_widget_get_type (void) G_GNUC_CONST;
 

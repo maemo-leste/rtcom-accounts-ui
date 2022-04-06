@@ -14,6 +14,9 @@ librtcom_accounts_widgets_la_SOURCES =					\
 		rtcom-dialog-context.c					\
 		rtcom-page.c						\
 		rtcom-widget.c						\
+		rtcom-username.c					\
+		rtcom-login.c						\
+		rtcom-param-string.c					\
 		rtcom-account-service.c
 
 librtcom_accounts_widgets_includedir =					\
