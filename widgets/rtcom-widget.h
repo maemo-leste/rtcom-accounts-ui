@@ -61,6 +61,12 @@ struct _RtcomWidgetIface
     G_IMPLEMENT_INTERFACE (RTCOM_TYPE_WIDGET, rtcom_widget_init) \
     _RTCOM_DEFINE_TYPE_EXTENDED_END()
 
+#define RTCOM_DEFINE_WIDGET_TYPE_WITH_PRIVATE(TN, t_n, T_P) \
+    _RTCOM_DEFINE_TYPE_EXTENDED_BEGIN (TN, t_n, T_P, 0) \
+    G_IMPLEMENT_INTERFACE (RTCOM_TYPE_WIDGET, rtcom_widget_init) \
+    G_ADD_PRIVATE (TN) \
+    _RTCOM_DEFINE_TYPE_EXTENDED_END()
+
 /* this is the GType _G_DEFINE_TYPE_EXTENDED_BEGIN with the following changes:
  *  - the class_intern_init() also calls rtcom_widget_class_init at the end
  *  - instead of calling the type_name##_init() directly, this has been
@@ -71,6 +77,7 @@ struct _RtcomWidgetIface
 static void     type_name##_init              (TypeName        *self); \
 static void     type_name##_class_init        (TypeName##Class *klass); \
 static gpointer type_name##_parent_class = NULL; \
+static gint     TypeName##_private_offset; \
 static void     type_name##_intern_init (TypeName *self) \
 { \
   rtcom_widget_instance_init ((RtcomWidget*) self); \
@@ -82,6 +89,13 @@ static void     type_name##_class_intern_init (gpointer klass) \
   type_name##_parent_class = g_type_class_peek_parent (klass); \
   type_name##_class_init ((TypeName##Class*) klass); \
   rtcom_widget_class_init ((GObjectClass*) klass); \
+} \
+\
+G_GNUC_UNUSED \
+static inline gpointer \
+type_name##_get_instance_private (TypeName *self) \
+{ \
+  return (G_STRUCT_MEMBER_P (self, TypeName##_private_offset)); \
 } \
 \
 GType \

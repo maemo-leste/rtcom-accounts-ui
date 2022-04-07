@@ -54,6 +54,7 @@ struct _RtcomAccountService
     /*< private >*/
     TpProtocol *protocol;
     gchar *successful_msg;
+    gchar *account_domains;
 };
 
 GType rtcom_account_service_get_type (void) G_GNUC_CONST;
@@ -74,6 +75,9 @@ void rtcom_account_service_connect (RtcomAccountService *service,
 
 void rtcom_account_service_set_successful_message (RtcomAccountService *service,
                                                    const gchar *msg);
+
+void rtcom_account_service_set_account_domains (RtcomAccountService *service,
+                                                const gchar *domains);
 
 G_END_DECLS
 

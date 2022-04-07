@@ -83,10 +83,16 @@ enum
 
 enum
 {
+  ITEM_FLAG_NONE = 0,
   ITEM_FLAG_CREATE_NEW_BUTTON = 1,
   ITEM_FLAG_FORGOT_PASSWORD_BUTTON = 2,
   ITEM_FLAG_ADVANCED_SETTINGS_BUTTON = 4,
-  ITEM_FLAG_ALLOW_MULTIPLE = 0x20,
+  ITEM_FLAG_ALLOW_MULTIPLE = 8,
+  ITEM_FLAG_ALL =
+    ITEM_FLAG_CREATE_NEW_BUTTON |
+    ITEM_FLAG_FORGOT_PASSWORD_BUTTON |
+    ITEM_FLAG_ADVANCED_SETTINGS_BUTTON |
+    ITEM_FLAG_ALLOW_MULTIPLE
 };
 
 static void
@@ -546,7 +552,7 @@ rtcom_login_class_init(RtcomLoginClass *klass)
       "items-mask",
       NULL,
       NULL,
-      0, 0x37, 0,
+      ITEM_FLAG_NONE, ITEM_FLAG_ALL, ITEM_FLAG_NONE,
       G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
   g_object_class_install_property(
     object_class, PROP_ACCOUNT,

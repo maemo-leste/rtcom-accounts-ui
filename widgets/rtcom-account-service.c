@@ -53,6 +53,7 @@ rtcom_account_service_finalize(GObject *object)
   RtcomAccountService *service = RTCOM_ACCOUNT_SERVICE(object);
 
   g_free(service->successful_msg);
+  g_free(service->account_domains);
 
   G_OBJECT_CLASS(rtcom_account_service_parent_class)->finalize(object);
 }
@@ -157,6 +158,9 @@ rtcom_account_service_constructor(GType type, guint n_construct_properties,
     service->icon = gtk_icon_theme_load_icon(
         gtk_icon_theme_get_default(), icon_name, 48, 0, NULL);
   }
+
+  RTCOM_ACCOUNT_SERVICE(service)->successful_msg = NULL;
+  RTCOM_ACCOUNT_SERVICE(service)->account_domains = NULL;
 
   /* we don't have those in telepathy */
   service->supports_avatar = TRUE;
@@ -373,7 +377,7 @@ _connection_error_cb(TpConnection *proxy, const gchar *arg_Error,
 
   if (arg_Details)
   {
-    /* threre was some skype-specific error processing here, but I kept tha
+    /* threre was some skype-specific error processing here, but I kept the
      * callback in case we want some detailed error messages
      */
   }
@@ -600,4 +604,15 @@ rtcom_account_service_set_successful_message(RtcomAccountService *service,
   g_free(service->successful_msg);
 
   service->successful_msg = g_strdup(msg);
+}
+
+void
+rtcom_account_service_set_account_domains (RtcomAccountService *service,
+                                           const gchar *domains)
+{
+  g_return_if_fail(RTCOM_IS_ACCOUNT_SERVICE(service));
+
+  g_free(service->account_domains);
+
+  service->account_domains = g_strdup(domains);
 }
