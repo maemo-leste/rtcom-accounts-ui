@@ -24,9 +24,6 @@
 
 #include "rtcom-param-string.h"
 
-static void
-rtcom_widget_init(RtcomWidgetIface *iface);
-
 RTCOM_DEFINE_WIDGET_TYPE(
   RtcomParamString,
   rtcom_param_string,

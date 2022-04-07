@@ -78,6 +78,7 @@ static void     type_name##_init              (TypeName        *self); \
 static void     type_name##_class_init        (TypeName##Class *klass); \
 static gpointer type_name##_parent_class = NULL; \
 static gint     TypeName##_private_offset; \
+static void     rtcom_widget_init(RtcomWidgetIface *iface); \
 static void     type_name##_intern_init (TypeName *self) \
 { \
   rtcom_widget_instance_init ((RtcomWidget*) self); \

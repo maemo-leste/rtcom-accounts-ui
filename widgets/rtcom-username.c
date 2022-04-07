@@ -24,9 +24,6 @@
 
 #include "rtcom-username.h"
 
-static void
-rtcom_widget_init(RtcomWidgetIface *iface);
-
 struct _RtcomUsernamePrivate
 {
   gchar *placeholder;
