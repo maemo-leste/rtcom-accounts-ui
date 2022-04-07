@@ -50,18 +50,18 @@ rtcom_param_string_store_settings(RtcomWidget *widget, GError **error,
   const gchar *text;
 
   if (!string->field)
-    return FALSE;
+    return TRUE;
 
   if (!gtk_widget_get_sensitive(GTK_WIDGET(string)))
   {
     rtcom_account_item_unset_param(item, string->field);
-    return FALSE;
+    return TRUE;
   }
 
   text = gtk_entry_get_text(GTK_ENTRY(string));
 
   if (!text || !*text)
-    return FALSE;
+    return TRUE;
 
   rtcom_account_item_store_param_string(item, string->field, text);
 

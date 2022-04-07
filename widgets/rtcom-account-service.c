@@ -22,6 +22,7 @@
 #include <conic/conic.h>
 #include <hildon/hildon.h>
 #include <telepathy-glib/simple-client-factory.h>
+#include <dbus/dbus.h>
 
 #include "rtcom-account-service.h"
 
@@ -615,4 +616,51 @@ rtcom_account_service_set_account_domains (RtcomAccountService *service,
   g_free(service->account_domains);
 
   service->account_domains = g_strdup(domains);
+}
+
+GType
+rtcom_account_service_get_param_type(RtcomAccountService *service,
+                                     const gchar *name)
+{
+  const TpConnectionManagerParam *param;
+  const gchar *signature;
+
+  g_return_val_if_fail(RTCOM_IS_ACCOUNT_SERVICE(service), G_TYPE_INVALID);
+
+  if (!tp_protocol_has_param(service->protocol, name))
+    return G_TYPE_INVALID;
+
+  param = tp_protocol_get_param(service->protocol, name);
+  signature = tp_connection_manager_param_get_dbus_signature(param);
+
+  switch (signature[0])
+  {
+    case DBUS_TYPE_BOOLEAN:
+    {
+      return G_TYPE_BOOLEAN;
+    }
+    case DBUS_TYPE_INT16:
+    /* fall-through */
+    case DBUS_TYPE_INT32:
+    {
+      return G_TYPE_INT;
+    }
+    case DBUS_TYPE_UINT16:
+    case DBUS_TYPE_UINT32:
+    {
+      return G_TYPE_UINT;
+    }
+    case DBUS_TYPE_STRING:
+    {
+      return G_TYPE_STRING;
+    }
+    default:
+    {
+      g_warning("%s: parameter %s, unknown type %s",
+                __FUNCTION__, name, signature);
+      break;
+    }
+  }
+
+  return G_TYPE_INVALID;
 }

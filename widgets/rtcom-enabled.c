@@ -19,7 +19,6 @@
 
 #include "config.h"
 
-#include <gtk/gtkprivate.h>
 #include <hildon/hildon.h>
 
 #include "rtcom-enabled.h"
