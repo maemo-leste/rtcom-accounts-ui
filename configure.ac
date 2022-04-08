@@ -24,7 +24,7 @@ PKG_CHECK_MODULES(ACCOUNTS_UI,
                   hildon-control-panel libaccounts xproto])
 PKG_CHECK_MODULES(ACCOUNTS_WIDGETS,
                   [dbus-glib-1 hildon-1 telepathy-glib libaccounts dnl
-                  xproto conic])
+                  xproto conic libhildonmime])
 
 #+++++++++++++++
 # Misc programs 

@@ -19,7 +19,8 @@
 #define _RTCOM_EDIT_H_
 
 #include <gtk/gtk.h>
-#include <librtcom-accounts-widgets/rtcom-page.h>
+
+#include "rtcom-page.h"
 
 G_BEGIN_DECLS
 
@@ -44,9 +45,7 @@ struct _RtcomEdit
 };
 
 GType rtcom_edit_get_type (void) G_GNUC_CONST;
-void rtcom_edit_connect_on_edit_info(RtcomEdit *, GCallback, gpointer);
 void rtcom_edit_connect_on_advanced(RtcomEdit *, GCallback, gpointer);
-void rtcom_edit_connect_on_save(RtcomEdit *, GCallback, gpointer);
 
 G_END_DECLS
 
