@@ -81,20 +81,6 @@ enum
   PROP_DEFINE_USERNAME
 };
 
-enum
-{
-  ITEM_FLAG_NONE = 0,
-  ITEM_FLAG_CREATE_NEW_BUTTON = 1,
-  ITEM_FLAG_FORGOT_PASSWORD_BUTTON = 2,
-  ITEM_FLAG_ADVANCED_SETTINGS_BUTTON = 4,
-  ITEM_FLAG_ALLOW_MULTIPLE = 8,
-  ITEM_FLAG_ALL =
-    ITEM_FLAG_CREATE_NEW_BUTTON |
-    ITEM_FLAG_FORGOT_PASSWORD_BUTTON |
-    ITEM_FLAG_ADVANCED_SETTINGS_BUTTON |
-    ITEM_FLAG_ALLOW_MULTIPLE
-};
-
 static void
 rtcom_login_finalize(GObject *object)
 {
@@ -328,7 +314,7 @@ constructor(GType type, guint n_construct_properties,
   align = gtk_alignment_new(0.5, 0.5, 1.0, 1.0);
   priv->vbox = gtk_vbox_new(0, 0);
 
-  if (priv->items_mask & ITEM_FLAG_CREATE_NEW_BUTTON)
+  if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_REGISTER)
   {
     priv->new_account_button = hildon_button_new_with_text(
         HILDON_SIZE_FINGER_HEIGHT, HILDON_BUTTON_ARRANGEMENT_HORIZONTAL,
@@ -338,7 +324,7 @@ constructor(GType type, guint n_construct_properties,
                                 0.0, 0.5, 1.0, 1.0);
   }
 
-  if (priv->items_mask & ITEM_FLAG_FORGOT_PASSWORD_BUTTON)
+  if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_FORGOT_PWD)
   {
     priv->forgot_password_button = hildon_button_new_with_text(
         HILDON_SIZE_FINGER_HEIGHT, HILDON_BUTTON_ARRANGEMENT_HORIZONTAL,
@@ -348,7 +334,7 @@ constructor(GType type, guint n_construct_properties,
     priv->items_mask = priv->items_mask;
   }
 
-  if (priv->items_mask & ITEM_FLAG_ADVANCED_SETTINGS_BUTTON)
+  if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_ADVANCED)
   {
     priv->advanced_settings_button = hildon_button_new_with_text(
         HILDON_SIZE_FINGER_HEIGHT, HILDON_BUTTON_ARRANGEMENT_HORIZONTAL,
@@ -376,7 +362,7 @@ constructor(GType type, guint n_construct_properties,
       "prefill", priv->username_prefill,
       "placeholder", priv->username_placeholder,
       "check-uniqueness", (gboolean)(priv->items_mask &
-                                     ITEM_FLAG_ALLOW_MULTIPLE),
+                                     RTCOM_PLUGIN_CAPABILITY_ALLOW_MULTIPLE),
       "show-server-name", priv->username_show_server_name,
       "must-have-at-separator", priv->username_must_have_at_separator,
       "required-server", priv->username_required_server,
@@ -436,7 +422,7 @@ constructor(GType type, guint n_construct_properties,
   gtk_table_attach(GTK_TABLE(table), password_field, 1, 2, top, bottom,
                    GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
 
-  if (priv->items_mask & ITEM_FLAG_CREATE_NEW_BUTTON)
+  if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_REGISTER)
   {
     gtk_box_pack_start(GTK_BOX(priv->vbox), priv->new_account_button,
                        FALSE, FALSE, 0);
@@ -444,13 +430,13 @@ constructor(GType type, guint n_construct_properties,
 
   gtk_box_pack_start(GTK_BOX(priv->vbox), table, FALSE, FALSE, 0);
 
-  if (priv->items_mask & ITEM_FLAG_FORGOT_PASSWORD_BUTTON)
+  if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_FORGOT_PWD)
   {
     gtk_box_pack_start(GTK_BOX(priv->vbox), priv->forgot_password_button,
                        FALSE, FALSE, 0);
   }
 
-  if (priv->items_mask & ITEM_FLAG_ADVANCED_SETTINGS_BUTTON)
+  if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_ADVANCED)
   {
     gtk_box_pack_start(GTK_BOX(priv->vbox), priv->advanced_settings_button,
                        FALSE, FALSE, 0);
@@ -552,7 +538,7 @@ rtcom_login_class_init(RtcomLoginClass *klass)
       "items-mask",
       NULL,
       NULL,
-      ITEM_FLAG_NONE, ITEM_FLAG_ALL, ITEM_FLAG_NONE,
+      0, RTCOM_PLUGIN_CAPABILITY_ALL, 0,
       G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
   g_object_class_install_property(
     object_class, PROP_ACCOUNT,

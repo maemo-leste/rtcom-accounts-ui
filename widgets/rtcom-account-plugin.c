@@ -189,16 +189,17 @@ rtcom_account_plugin_get_property(GObject *object, guint property_id,
   }
 }
 
-static gboolean
-rtcom_account_plugin_setup(AccountPlugin *account_plugin,
-                           AccountsList *accounts_list)
+static void
+_add_accounts(RtcomAccountPlugin *plugin)
 {
-  RtcomAccountPlugin *plugin = RTCOM_ACCOUNT_PLUGIN(account_plugin);
   RtcomAccountPluginPrivate *priv = PRIVATE(plugin);
+  AccountsList *accounts_list = NULL;
   GList *accounts;
   GList *l;
 
   priv->initialized = TRUE;
+
+  g_object_get(plugin, "accounts-list", &accounts_list, NULL);
 
   accounts = tp_account_manager_dup_valid_accounts(plugin->manager);
 
@@ -218,13 +219,24 @@ rtcom_account_plugin_setup(AccountPlugin *account_plugin,
         accounts_list_add(accounts_list,
                           ACCOUNT_ITEM(rtcom_account_item_new(l->data, svc)));
       }
-
-      g_free(service_id);
     }
+
+    g_free(service_id);
   }
 
   g_list_free_full(accounts, g_object_unref);
+  g_object_unref(accounts_list);
   g_object_notify(G_OBJECT(plugin), "initialized");
+}
+
+static gboolean
+rtcom_account_plugin_setup(AccountPlugin *account_plugin,
+                           AccountsList *accounts_list)
+{
+  RtcomAccountPlugin *plugin = RTCOM_ACCOUNT_PLUGIN(account_plugin);
+
+  if (tp_proxy_is_prepared(plugin->manager, TP_ACCOUNT_MANAGER_FEATURE_CORE))
+    _add_accounts(plugin);
 
   return TRUE;
 }
@@ -318,6 +330,8 @@ on_manager_ready(GObject *source_object, GAsyncResult *res, gpointer user_data)
     else
       g_warning("%s: got unknown error", __FUNCTION__);
   }
+  else
+    _add_accounts(user_data);
 }
 
 static void

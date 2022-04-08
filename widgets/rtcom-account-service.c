@@ -77,6 +77,7 @@ cm_prepared_cb(GObject *object, GAsyncResult *res, gpointer user_data)
   g_main_loop_quit(data[1]);
 }
 
+
 static TpProtocol *
 get_protocol(AccountService *service)
 {
@@ -89,6 +90,7 @@ get_protocol(AccountService *service)
   TpProtocol *protocol = NULL;
   gpointer data[3];
   GMainLoop *loop;
+  const GQuark features[] = {TP_CONNECTION_MANAGER_FEATURE_CORE, 0};
 
   if (arr && arr[0] && arr[1])
   {
@@ -99,9 +101,8 @@ get_protocol(AccountService *service)
   g_return_val_if_fail(cm_name != NULL, NULL);
   g_return_val_if_fail(protocol_name != NULL, NULL);
 
-  dbus = tp_dbus_daemon_dup(NULL);
+  dbus = tp_dbus_daemon_new(dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL));
   cm = tp_connection_manager_new(dbus, cm_name, NULL, &error);
-  g_object_unref(dbus);
 
   if (error)
   {
@@ -112,22 +113,24 @@ get_protocol(AccountService *service)
     return NULL;
   }
 
+  tp_connection_manager_activate(cm);
   loop = g_main_loop_new(NULL, FALSE);
   data[0] = protocol_name;
   data[1] = loop;
   data[2] = NULL; /* out */
-  tp_proxy_prepare_async(cm, NULL, cm_prepared_cb, data);
+  tp_proxy_prepare_async(cm, features, cm_prepared_cb, data);
 
   GDK_THREADS_LEAVE();
   g_main_loop_run(loop);
   GDK_THREADS_ENTER();
 
-  g_object_unref(cm);
-  g_main_loop_unref(loop);
-  g_strfreev(arr);
-
   if (data[2])
     protocol = g_object_ref(data[2]);
+
+  g_main_loop_unref(loop);
+  g_object_unref(cm);
+  g_object_unref(dbus);
+  g_strfreev(arr);
 
   return protocol;
 }

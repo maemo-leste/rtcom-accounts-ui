@@ -90,7 +90,7 @@ rtcom_param_string_set_account(RtcomWidget *widget, RtcomAccountItem *account)
   if (string->field)
   {
     const TpConnectionManagerParam *param;
-    GValue v;
+    GValue v = G_VALUE_INIT;
 
     param = tp_protocol_get_param(protocol, string->field);
 

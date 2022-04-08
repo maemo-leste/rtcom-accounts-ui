@@ -672,8 +672,7 @@ idle_plugin_initialization_done(gpointer user_data)
 static void
 init_plugins(AccountsUI *ui)
 {
-  /* FIXME - multiarch */
-  GList *plugin_paths = g_list_prepend(0, "/usr/lib/libaccounts-plugins");
+  GList *plugin_paths = g_list_prepend(NULL, PLUGINLIBDIR);
   AccountsUIPrivate *priv = PRIVATE(ui);
   GList *plugins;
 

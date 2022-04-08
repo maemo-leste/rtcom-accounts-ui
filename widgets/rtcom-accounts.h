@@ -19,14 +19,14 @@
 #ifndef _RTCOM_ACCOUNTS_H_
 #define _RTCOM_ACCOUNTS_H_
 
-#include "librtcom-accounts-widgets/rtcom-page.h"
-#include "librtcom-accounts-widgets/rtcom-param-string.h"
-#include "librtcom-accounts-widgets/rtcom-param-int.h"
-#include "librtcom-accounts-widgets/rtcom-param-bool.h"
-#include "librtcom-accounts-widgets/rtcom-username.h"
-#include "librtcom-accounts-widgets/rtcom-alias.h"
-#include "librtcom-accounts-widgets/rtcom-displayname.h"
-#include "librtcom-accounts-widgets/rtcom-context.h"
+#include "rtcom-page.h"
+#include "rtcom-param-string.h"
+#include "rtcom-param-int.h"
+#include "rtcom-param-bool.h"
+#include "rtcom-username.h"
+#include "rtcom-alias.h"
+#include "rtcom-displayname.h"
+#include "rtcom-context.h"
 
 #endif /* _RTCOM_ACCOUNTS_H_ */
 

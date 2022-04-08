@@ -686,7 +686,7 @@ rtcom_account_item_store_settings(RtcomAccountItem *item, GError **error)
 
     if (server)
     {
-      GValue v;
+      GValue v = G_VALUE_INIT;
 
       if (tp_connection_manager_param_get_default(server, &v) &&
           G_VALUE_HOLDS_STRING(&v))

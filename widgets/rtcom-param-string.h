@@ -20,6 +20,7 @@
 #define _RTCOM_PARAM_STRING_H_
 
 #include <hildon/hildon-entry.h>
+
 #include "rtcom-widget.h"
 #include "rtcom-entry-validation.h"
 

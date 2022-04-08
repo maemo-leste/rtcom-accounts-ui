@@ -244,7 +244,7 @@ rtcom_param_int_account(RtcomWidget *widget, RtcomAccountItem *account)
   if (protocol)
   {
     const TpConnectionManagerParam *param;
-    GValue v;
+    GValue v = G_VALUE_INIT;
 
     param = tp_protocol_get_param(protocol, self->field);
 

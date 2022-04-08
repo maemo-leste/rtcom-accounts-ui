@@ -1,7 +1,8 @@
 librtcom_accounts_ui_la_LTLIBRARIES = librtcom-accounts-ui.la
 librtcom_accounts_ui_ladir = $(cplpluginlibdir)
 librtcom_accounts_ui_la_CFLAGS = $(ACCOUNTS_UI_CFLAGS) $(DGETTEXT)	\
-		-I$(top_srcdir)/client/
+		-I$(top_srcdir)/client					\
+		-DPLUGINLIBDIR=\"@pluginlibdir@\"
 librtcom_accounts_ui_la_LDFLAGS = -Wl,--as-needed $(ACCOUNTS_UI_LIBS)	\
 		-Wl,--no-undefined -module -avoid-version
 librtcom_accounts_ui_la_LIBADD =					\

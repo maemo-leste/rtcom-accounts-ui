@@ -37,11 +37,14 @@ AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 # Directories setup
 #+++++++++++++++++++
 
-cplpluginlibdir=`pkg-config hildon-control-panel --variable=pluginlibdir`
+cplpluginlibdir=`$PKG_CONFIG hildon-control-panel --variable=pluginlibdir`
 AC_SUBST(cplpluginlibdir)
 
-cplplugindesktopentrydir=`pkg-config hildon-control-panel --variable=plugindesktopentrydir`
+cplplugindesktopentrydir=`$PKG_CONFIG hildon-control-panel --variable=plugindesktopentrydir`
 AC_SUBST(cplplugindesktopentrydir)
+
+pluginlibdir="`$PKG_CONFIG --variable=pluginlibdir libaccounts`"
+AC_SUBST(pluginlibdir)
 
 #+++++++++++++++++++
 # Misc stuff

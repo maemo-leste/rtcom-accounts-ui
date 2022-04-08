@@ -90,8 +90,8 @@ aui_instance_close(AuiInstance *instance, GError **error)
 #include "dbus-glib-marshal-aui-instance.h"
 
 static GObject *
-constructor(GType type, guint n_construct_properties,
-            GObjectConstructParam *construct_properties)
+accounts_ui_constructor(GType type, guint n_construct_properties,
+                        GObjectConstructParam *construct_properties)
 {
   GObject *instance = G_OBJECT_CLASS(aui_instance_parent_class)->
     constructor(type, n_construct_properties, construct_properties);
@@ -113,8 +113,12 @@ accounts_ui_destroy_cb(GtkWidget *accounts_ui, AuiInstance *instance)
 {
   AuiInstancePrivate *priv = PRIVATE(instance);
 
+  g_object_ref(instance);
+
   g_signal_emit(instance, signals[CLOSED], 0);
+
   priv->accounts_ui = NULL;
+  g_object_unref(instance);
 }
 
 static void
@@ -153,7 +157,7 @@ accounts_ui_unmap_cb(GtkWidget *accounts_ui, AuiInstance *instance)
 }
 
 static void
-dispose(GObject *object)
+accounts_ui_dispose(GObject *object)
 {
   AuiInstancePrivate *priv = PRIVATE(object);
 
@@ -185,7 +189,7 @@ dispose(GObject *object)
 }
 
 static void
-finalize(GObject *object)
+accounts_ui_finalize(GObject *object)
 {
   AuiInstancePrivate *priv = PRIVATE(object);
 
@@ -195,8 +199,8 @@ finalize(GObject *object)
 }
 
 static void
-get_property(GObject *object, guint property_id, GValue *value,
-             GParamSpec *pspec)
+accounts_ui_get_property(GObject *object, guint property_id, GValue *value,
+                         GParamSpec *pspec)
 {
   AuiInstancePrivate *priv = PRIVATE(object);
 
@@ -281,8 +285,8 @@ aui_instance_set_visible(AuiInstance *instance, gboolean visible)
 }
 
 static void
-set_property(GObject *object, guint property_id, const GValue *value,
-             GParamSpec *pspec)
+accounts_ui_set_property(GObject *object, guint property_id,
+                         const GValue *value, GParamSpec *pspec)
 {
   switch (property_id)
   {
@@ -320,11 +324,11 @@ aui_instance_class_init(AuiInstanceClass *klass)
   GObjectClass *object_class =
     G_OBJECT_CLASS(klass);
 
-  object_class->constructor = constructor;
-  object_class->dispose = dispose;
-  object_class->finalize = finalize;
-  object_class->get_property = get_property;
-  object_class->set_property = set_property;
+  object_class->constructor = accounts_ui_constructor;
+  object_class->dispose = accounts_ui_dispose;
+  object_class->finalize = accounts_ui_finalize;
+  object_class->get_property = accounts_ui_get_property;
+  object_class->set_property = accounts_ui_set_property;
 
   g_object_class_install_property(
     object_class, PROP_DBUS_CONNECTION,

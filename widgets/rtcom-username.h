@@ -20,6 +20,7 @@
 #define _RTCOM_USERNAME_H_
 
 #include <gtk/gtkhbox.h>
+
 #include "rtcom-widget.h"
 #include "rtcom-entry-validation.h"
 

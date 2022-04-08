@@ -19,8 +19,6 @@
 #ifndef _RTCOM_WIDGET_H_
 #define _RTCOM_WIDGET_H_
 
-#include "config.h"
-
 #include <gtk/gtkwidget.h>
 
 #include "rtcom-account-item.h"
@@ -88,6 +86,8 @@ static void     type_name##_intern_init (TypeName *self) \
 static void     type_name##_class_intern_init (gpointer klass) \
 { \
   type_name##_parent_class = g_type_class_peek_parent (klass); \
+  if (TypeName##_private_offset != 0) \
+    g_type_class_adjust_private_offset (klass, &TypeName##_private_offset); \
   type_name##_class_init ((TypeName##Class*) klass); \
   rtcom_widget_class_init ((GObjectClass*) klass); \
 } \
