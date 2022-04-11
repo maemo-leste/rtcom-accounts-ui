@@ -25,7 +25,7 @@ PKG_CHECK_MODULES(ACCOUNTS_UI,
                   rtcom-accounts-ui-client])
 PKG_CHECK_MODULES(ACCOUNTS_WIDGETS,
                   [dbus-glib-1 hildon-1 telepathy-glib libaccounts dnl
-                  xproto conic libhildonmime])
+                  xproto conic libhildonmime libosso-abook-1.0])
 
 #+++++++++++++++
 # Misc programs 

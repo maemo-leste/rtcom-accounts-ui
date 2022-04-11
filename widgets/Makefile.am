@@ -21,6 +21,7 @@ librtcom_accounts_widgets_la_SOURCES =					\
 		rtcom-enabled.c						\
 		rtcom-edit.c						\
 		rtcom-alias.c						\
+		rtcom-avatar.c						\
 		rtcom-entry-validation.c				\
 		rtcom-account-service.c
 

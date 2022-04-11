@@ -1019,8 +1019,8 @@ accounts_ui_init(AccountsUI *ui)
   gtk_widget_show(priv->button_new);
 
   priv->avatar_icon = gtk_icon_theme_load_icon(
-      gtk_icon_theme_get_default(), "general_default_avatar",
-      hildon_get_icon_pixel_size(HILDON_ICON_SIZE_FINGER), 0, NULL);
+      gtk_icon_theme_get_default(),
+      "general_default_avatar", HILDON_ICON_PIXEL_SIZE_FINGER, 0, NULL);
 
   init_plugins(ui);
   gtk_window_set_title(GTK_WINDOW(ui), _("accounts_ti_accounts"));
