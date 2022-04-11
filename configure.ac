@@ -21,7 +21,8 @@ PKG_PROG_PKG_CONFIG
 
 PKG_CHECK_MODULES(ACCOUNTS_UI,
                   [hildon-1 libosso telepathy-glib dbus-glib-1 dnl
-                  hildon-control-panel libaccounts xproto])
+                  hildon-control-panel libaccounts xproto dnl
+                  rtcom-accounts-ui-client])
 PKG_CHECK_MODULES(ACCOUNTS_WIDGETS,
                   [dbus-glib-1 hildon-1 telepathy-glib libaccounts dnl
                   xproto conic libhildonmime])
@@ -45,6 +46,9 @@ AC_SUBST(cplplugindesktopentrydir)
 
 pluginlibdir="`$PKG_CONFIG --variable=pluginlibdir libaccounts`"
 AC_SUBST(pluginlibdir)
+
+dbusinterfacedir="`$PKG_CONFIG --variable=dbusinterfacedir rtcom-accounts-ui-client`"
+AC_SUBST(dbusinterfacedir)
 
 #+++++++++++++++++++
 # Misc stuff
@@ -77,13 +81,11 @@ AC_SUBST(DGETTEXT)
 
 AC_OUTPUT([
 	Makefile
-	client/Makefile
 	lib/Makefile
 	service/Makefile
 	widgets/Makefile
 	com.nokia.AccountsUI.service
 	rtcom-accounts-ui.pc
-	rtcom-accounts-ui-client.pc
 	rtcom-accounts-widgets.pc
 ])
 
