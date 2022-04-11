@@ -58,15 +58,15 @@ enum
 };
 
 static GdkPixbuf *
-avatar_to_pixbuf(const guchar *data, gsize len)
+avatar_to_pixbuf(const guchar *data, gsize len, const char *mime_type)
 {
   GdkPixbufLoader *loader;
   GdkPixbuf *pixbuf;
 
-  if (!data)
+  if (!data || !mime_type || !mime_type)
     return NULL;
 
-  loader = gdk_pixbuf_loader_new();
+  loader = gdk_pixbuf_loader_new_with_mime_type(mime_type, NULL);
 
   if (!loader)
     return NULL;
@@ -86,16 +86,30 @@ avatar_to_pixbuf(const guchar *data, gsize len)
 }
 
 static void
-get_avatar_ready_cb(GObject *source_object, GAsyncResult *res,
-                    gpointer user_data)
+get_avatar_ready_cb(TpProxy *proxy, const GValue *out_Value,
+                    const GError *error, gpointer user_data,
+                    GObject *weak_object)
 {
-  TpAccount *account = TP_ACCOUNT(source_object);
-  GError *error = NULL;
-  const GArray *avatar = tp_account_get_avatar_finish(account, res, &error);
 
-  if (!error)
+  if (error)
   {
-    AccountItem *item = user_data;
+    g_warning("%s: Could not get new avatar data %s", __FUNCTION__,
+              error->message);
+  }
+  else if (!G_VALUE_HOLDS (out_Value, TP_STRUCT_TYPE_AVATAR))
+  {
+    g_warning("%s: Avatar had wrong type: %s", __FUNCTION__,
+              G_VALUE_TYPE_NAME (out_Value));
+  }
+  else
+  {
+    AccountItem *item = ACCOUNT_ITEM(weak_object);
+    GValueArray *array;
+    const GArray *avatar;
+    const gchar *mime_type;
+
+    array = g_value_get_boxed (out_Value);
+    tp_value_array_unpack (array, 2, &avatar, &mime_type);
 
     if (item->avatar)
     {
@@ -104,25 +118,21 @@ get_avatar_ready_cb(GObject *source_object, GAsyncResult *res,
     }
 
     if (avatar)
-      item->avatar = avatar_to_pixbuf((guchar *)avatar->data, avatar->len);
+    {
+      item->avatar =
+          avatar_to_pixbuf((guchar *)avatar->data, avatar->len, mime_type);
+    }
 
     g_object_notify(G_OBJECT(item), "avatar");
   }
-  else
-  {
-    g_warning("%s: Could not get new avatar data %s", __FUNCTION__,
-              error->message);
-    g_clear_error(&error);
-  }
-
-  g_object_unref(user_data);
 }
 
 static void
 on_avatar_changed(TpAccount *account, gpointer user_data)
 {
-  tp_account_get_avatar_async(
-    account, get_avatar_ready_cb, g_object_ref(user_data));
+  tp_cli_dbus_properties_call_get (account, -1,
+      TP_IFACE_ACCOUNT_INTERFACE_AVATAR, "Avatar", get_avatar_ready_cb,
+      NULL, NULL, user_data);
 }
 
 static void
@@ -352,8 +362,9 @@ ready_cb(GObject *object, GAsyncResult *res, gpointer user_data)
 
   if (item->supports_avatar && !item->avatar)
   {
-    tp_account_get_avatar_async(
-      account, get_avatar_ready_cb, g_object_ref(item));
+    tp_cli_dbus_properties_call_get (account, -1,
+        TP_IFACE_ACCOUNT_INTERFACE_AVATAR, "Avatar", get_avatar_ready_cb,
+        NULL, NULL, G_OBJECT(item));
   }
 }
 
@@ -631,7 +642,6 @@ rtcom_account_item_store_nickname(RtcomAccountItem *item, const gchar *name)
   item->nickname = g_strdup(name);
 }
 
-/* FIXME = do we need mime type? */
 void
 rtcom_account_item_store_avatar(RtcomAccountItem *item, gchar *data, gsize len,
                                 const gchar *mime_type)
