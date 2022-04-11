@@ -23,6 +23,8 @@
 #include <libosso-abook/osso-abook-avatar-chooser-dialog.h>
 #include <libosso-abook/osso-abook-avatar-editor-dialog.h>
 #include <libosso-abook/osso-abook-avatar-image.h>
+#include <libosso-abook/osso-abook-icon-sizes.h>
+#include <telepathy-glib/telepathy-glib.h>
 
 #include <libintl.h>
 
@@ -30,7 +32,7 @@
 
 struct _RtcomAvatarPrivate
 {
-  gint flags;
+  gboolean check_size;
 };
 
 typedef struct _RtcomAvatarPrivate RtcomAvatarPrivate;
@@ -97,7 +99,7 @@ _avatar_editor_response_cb(OssoABookAvatarEditorDialog *editor,
 
     if (pixbuf)
     {
-      PRIVATE(avatar)->flags |= 1u;
+      PRIVATE(avatar)->check_size = TRUE;
       _save_and_scale_avatar(avatar, pixbuf);
     }
   }
@@ -126,7 +128,7 @@ _avatar_chooser_response_cb(OssoABookAvatarChooserDialog *chooser,
       }
       else if (pixbuf)
       {
-        PRIVATE(avatar)->flags &= ~1u;
+        PRIVATE(avatar)->check_size = FALSE;
         _save_and_scale_avatar(avatar, pixbuf);
       }
     }
@@ -174,9 +176,162 @@ rtcom_avatar_init(RtcomAvatar *avatar)
                    G_CALLBACK(_avatar_clicked_cb), avatar);
 }
 
+static gboolean
+rtcom_avatar_store_settings(RtcomWidget *widget, GError **error,
+                            RtcomAccountItem *item)
+{
+  RtcomAvatar *avatar = RTCOM_AVATAR(widget);
+  RtcomAvatarPrivate *priv;
+  AccountService *service;
+  TpProtocol *protocol;
+  const char *mime = NULL;
+  const char *p;
+  const char *type;
+  GdkPixbuf *scaled;
+  GError *local_error = NULL;
+  gsize buffer_size;
+  gchar *buffer;
+
+  if (!avatar->src)
+  {
+    tp_account_set_avatar_async(item->account, NULL, 0, NULL, NULL, NULL);
+    return TRUE;
+  }
+
+  priv = PRIVATE(avatar);
+
+  service = account_item_get_service(ACCOUNT_ITEM(item));
+  protocol = rtcom_account_service_get_protocol(RTCOM_ACCOUNT_SERVICE(service));
+
+  if (protocol)
+  {
+    TpAvatarRequirements *req = tp_protocol_get_avatar_requirements(protocol);
+
+    if (req && req->supported_mime_types)
+      mime = req->supported_mime_types[0];
+  }
+
+  if (!protocol || !mime)
+    mime = "image/png";
+
+  p = strrchr(mime, '/');
+
+  if (p)
+    type = p + 1;
+  else
+  {
+    g_warning("%s: Unexpected mime type: %s", __FUNCTION__, mime);
+    type = mime;
+  }
+
+  if (priv->check_size)
+  {
+    if ((gdk_pixbuf_get_width(avatar->src) >
+         OSSO_ABOOK_PIXEL_SIZE_AVATAR_MEDIUM) ||
+        (gdk_pixbuf_get_height(avatar->src) >
+         OSSO_ABOOK_PIXEL_SIZE_AVATAR_MEDIUM))
+    {
+      scaled = gdk_pixbuf_scale_simple(avatar->src,
+                                       OSSO_ABOOK_PIXEL_SIZE_AVATAR_MEDIUM,
+                                       OSSO_ABOOK_PIXEL_SIZE_AVATAR_MEDIUM,
+                                       GDK_INTERP_BILINEAR);
+    }
+  }
+
+  if (scaled)
+  {
+    gdk_pixbuf_save_to_buffer(
+      scaled, &buffer, &buffer_size, type, &local_error, NULL);
+    g_object_unref(scaled);
+  }
+  else
+  {
+    gdk_pixbuf_save_to_buffer(
+      avatar->src, &buffer, &buffer_size, type, &local_error, NULL);
+  }
+
+  if (!local_error)
+    rtcom_account_item_store_avatar(item, buffer, buffer_size, mime);
+  else
+  {
+    g_warning("%s, Failed to save avatar: %s", __FUNCTION__,
+              local_error->message);
+    g_error_free(local_error);
+  }
+
+  return TRUE;
+}
+
+static void
+_get_avatar_cb(TpProxy *proxy, const GValue *out_Value,
+               const GError *error, gpointer user_data,
+               GObject *weak_object)
+{
+  gpointer *data = user_data;
+
+  if (error)
+    g_warning("%s: Could not get avatar data %s", __FUNCTION__, error->message);
+  else if (!G_VALUE_HOLDS(out_Value, TP_STRUCT_TYPE_AVATAR))
+  {
+    g_warning("%s: Avatar had wrong type: %s", __FUNCTION__,
+              G_VALUE_TYPE_NAME(out_Value));
+  }
+  else
+  {
+    RtcomAvatar *avatar = RTCOM_AVATAR(data[1]);
+    GValueArray *array = g_value_get_boxed(out_Value);
+    const GArray *avatar_array;
+    const gchar *mime_type;
+    GdkPixbufLoader *loader = gdk_pixbuf_loader_new();
+
+    tp_value_array_unpack(array, 2, &avatar_array, &mime_type);
+
+    if (gdk_pixbuf_loader_write(loader, (guchar *)avatar_array->data,
+                                avatar_array->len, NULL))
+    {
+      avatar->src = gdk_pixbuf_loader_get_pixbuf(loader);
+
+      if (avatar->src)
+      {
+        g_object_ref(avatar->src);
+        osso_abook_avatar_image_set_pixbuf(
+              OSSO_ABOOK_AVATAR_IMAGE(avatar->image), avatar->src);
+      }
+    }
+
+    gdk_pixbuf_loader_close(loader, NULL);
+    g_object_unref(loader);
+  }
+
+  g_main_loop_quit(data[0]);
+}
+
+static void
+rtcom_avatar_get_settings(RtcomWidget *widget, RtcomAccountItem *item)
+{
+  gpointer data[2];
+
+  if (!item->account)
+    return;
+
+  data[0] = g_main_loop_new(NULL, FALSE);
+  data[1] = g_object_ref(widget);
+
+  tp_cli_dbus_properties_call_get(
+    item->account, -1, TP_IFACE_ACCOUNT_INTERFACE_AVATAR, "Avatar",
+    _get_avatar_cb, data, NULL, NULL);
+
+  GDK_THREADS_LEAVE();
+  g_main_loop_run(data[0]);
+  GDK_THREADS_ENTER();
+
+  g_main_loop_unref(data[0]);
+  g_object_unref(data[1]);
+}
+
 static void
 rtcom_widget_init(RtcomWidgetIface *iface)
 {
-  /*iface->store_settings = rtcom_avatar_store_settings;
-  iface->get_settings = rtcom_avatar_get_settings;*/
+  iface->store_settings = rtcom_avatar_store_settings;
+  iface->get_settings = rtcom_avatar_get_settings;
 }

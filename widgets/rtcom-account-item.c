@@ -90,16 +90,15 @@ get_avatar_ready_cb(TpProxy *proxy, const GValue *out_Value,
                     const GError *error, gpointer user_data,
                     GObject *weak_object)
 {
-
   if (error)
   {
     g_warning("%s: Could not get new avatar data %s", __FUNCTION__,
               error->message);
   }
-  else if (!G_VALUE_HOLDS (out_Value, TP_STRUCT_TYPE_AVATAR))
+  else if (!G_VALUE_HOLDS(out_Value, TP_STRUCT_TYPE_AVATAR))
   {
     g_warning("%s: Avatar had wrong type: %s", __FUNCTION__,
-              G_VALUE_TYPE_NAME (out_Value));
+              G_VALUE_TYPE_NAME(out_Value));
   }
   else
   {
@@ -108,8 +107,8 @@ get_avatar_ready_cb(TpProxy *proxy, const GValue *out_Value,
     const GArray *avatar;
     const gchar *mime_type;
 
-    array = g_value_get_boxed (out_Value);
-    tp_value_array_unpack (array, 2, &avatar, &mime_type);
+    array = g_value_get_boxed(out_Value);
+    tp_value_array_unpack(array, 2, &avatar, &mime_type);
 
     if (item->avatar)
     {
@@ -120,7 +119,7 @@ get_avatar_ready_cb(TpProxy *proxy, const GValue *out_Value,
     if (avatar)
     {
       item->avatar =
-          avatar_to_pixbuf((guchar *)avatar->data, avatar->len, mime_type);
+        avatar_to_pixbuf((guchar *)avatar->data, avatar->len, mime_type);
     }
 
     g_object_notify(G_OBJECT(item), "avatar");
@@ -130,9 +129,9 @@ get_avatar_ready_cb(TpProxy *proxy, const GValue *out_Value,
 static void
 on_avatar_changed(TpAccount *account, gpointer user_data)
 {
-  tp_cli_dbus_properties_call_get (account, -1,
-      TP_IFACE_ACCOUNT_INTERFACE_AVATAR, "Avatar", get_avatar_ready_cb,
-      NULL, NULL, user_data);
+  tp_cli_dbus_properties_call_get(
+    account, -1, TP_IFACE_ACCOUNT_INTERFACE_AVATAR, "Avatar",
+    get_avatar_ready_cb, NULL, NULL, user_data);
 }
 
 static void
@@ -362,9 +361,9 @@ ready_cb(GObject *object, GAsyncResult *res, gpointer user_data)
 
   if (item->supports_avatar && !item->avatar)
   {
-    tp_cli_dbus_properties_call_get (account, -1,
-        TP_IFACE_ACCOUNT_INTERFACE_AVATAR, "Avatar", get_avatar_ready_cb,
-        NULL, NULL, G_OBJECT(item));
+    tp_cli_dbus_properties_call_get(
+          account, -1, TP_IFACE_ACCOUNT_INTERFACE_AVATAR, "Avatar",
+          get_avatar_ready_cb, NULL, NULL, G_OBJECT(item));
   }
 }
 
@@ -481,6 +480,8 @@ rtcom_account_item_set_enabled(AccountItem *account, gboolean enabled,
   GDK_THREADS_LEAVE();
   g_main_loop_run(data.loop);
   GDK_THREADS_ENTER();
+
+  g_main_loop_unref(data.loop);
 
   return data.enabled;
 }
