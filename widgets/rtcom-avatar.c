@@ -187,7 +187,7 @@ rtcom_avatar_store_settings(RtcomWidget *widget, GError **error,
   const char *mime = NULL;
   const char *p;
   const char *type;
-  GdkPixbuf *scaled;
+  GdkPixbuf *scaled = NULL;
   GError *local_error = NULL;
   gsize buffer_size;
   gchar *buffer;
