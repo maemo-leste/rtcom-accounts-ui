@@ -27,6 +27,8 @@ PKG_CHECK_MODULES(ACCOUNTS_WIDGETS,
                   [dbus-glib-1 hildon-1 telepathy-glib libaccounts dnl
                   xproto conic libhildonmime libosso-abook-1.0])
 
+PKG_CHECK_MODULES(ACCOUNTS_GLADE, [libglade-2.0 hildon-1 telepathy-glib])
+
 #+++++++++++++++
 # Misc programs 
 #+++++++++++++++
@@ -49,6 +51,9 @@ AC_SUBST(pluginlibdir)
 
 dbusinterfacedir="`$PKG_CONFIG --variable=dbusinterfacedir rtcom-accounts-ui-client`"
 AC_SUBST(dbusinterfacedir)
+
+glademoduledir="`$PKG_CONFIG --variable=moduledir libglade-2.0`"
+AC_SUBST(glademoduledir)
 
 #+++++++++++++++++++
 # Misc stuff
@@ -84,6 +89,7 @@ AC_OUTPUT([
 	lib/Makefile
 	service/Makefile
 	widgets/Makefile
+	glade/Makefile
 	com.nokia.AccountsUI.service
 	rtcom-accounts-ui.pc
 	rtcom-accounts-widgets.pc

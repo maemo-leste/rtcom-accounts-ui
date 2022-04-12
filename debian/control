@@ -1,4 +1,5 @@
 Source: rtcom-accounts-ui
+Section: comm
 Priority: optional
 Maintainer: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 Build-Depends:
@@ -62,3 +63,11 @@ Description: Development files for the RTC accounts library
  plugins
  .
  Contains the header files and static libraries
+
+Package: libaccounts-glade
+Section: libs
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Accounts support libraries for Glade
+ Support libraries for Glade
