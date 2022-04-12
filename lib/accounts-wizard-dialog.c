@@ -356,8 +356,8 @@ create_dialog:
     gchar *login_text = g_strdup_printf(msgid, service->display_name);
 
     priv->dialog = dialog;
-    gtk_container_remove(GTK_CONTAINER(wizard), priv->vbox);
-    gtk_container_add(GTK_CONTAINER(wizard), priv->dialog);
+    gtk_container_remove(GTK_CONTAINER(GTK_DIALOG(wizard)->vbox), priv->vbox);
+    gtk_container_add(GTK_CONTAINER(GTK_DIALOG(wizard)->vbox), priv->dialog);
     gtk_window_set_title(GTK_WINDOW(wizard), login_text);
     priv->button_sign_in = gtk_dialog_add_button(
         GTK_DIALOG(wizard), _("accounts_bd_sign_in"), 1);
