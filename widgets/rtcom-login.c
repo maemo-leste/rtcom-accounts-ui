@@ -305,6 +305,7 @@ constructor(GType type, guint n_construct_properties,
   GtkWidget *area;
   guint bottom;
   guint top;
+  gboolean check_uniqueness;
 
   object = G_OBJECT_CLASS(rtcom_login_parent_class)->constructor(
       type, n_construct_properties, construct_properties);
@@ -355,14 +356,16 @@ constructor(GType type, guint n_construct_properties,
       "xalign", 0.0,
       NULL);
 
+  check_uniqueness =
+    (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_ALLOW_MULTIPLE) ?
+    TRUE : FALSE;
   priv->username = g_object_new(
       RTCOM_TYPE_USERNAME,
       "field", priv->username_field,
       "invalid-chars-re", priv->username_invalid_chars_re,
       "prefill", priv->username_prefill,
       "placeholder", priv->username_placeholder,
-      "check-uniqueness", (gboolean)(priv->items_mask &
-                                     RTCOM_PLUGIN_CAPABILITY_ALLOW_MULTIPLE),
+      "check-uniqueness", check_uniqueness,
       "show-server-name", priv->username_show_server_name,
       "must-have-at-separator", priv->username_must_have_at_separator,
       "required-server", priv->username_required_server,
