@@ -362,8 +362,8 @@ ready_cb(GObject *object, GAsyncResult *res, gpointer user_data)
   if (item->supports_avatar && !item->avatar)
   {
     tp_cli_dbus_properties_call_get(
-          account, -1, TP_IFACE_ACCOUNT_INTERFACE_AVATAR, "Avatar",
-          get_avatar_ready_cb, NULL, NULL, G_OBJECT(item));
+      account, -1, TP_IFACE_ACCOUNT_INTERFACE_AVATAR, "Avatar",
+      get_avatar_ready_cb, NULL, NULL, G_OBJECT(item));
   }
 }
 
@@ -850,14 +850,27 @@ set_uri_schemes(RtcomAccountItem *item)
 }
 
 static void
-create_account_cb(GObject *source_object, GAsyncResult *res, gpointer user_data)
+account_prepared_cb(GObject *object, GAsyncResult *res, gpointer user_data)
 {
   RtcomAccountItem *item = user_data;
-  TpAccountManager *manager = TP_ACCOUNT_MANAGER(source_object);
   GError *error = NULL;
 
-  item->account =
-    tp_account_manager_create_account_finish(manager, res, &error);
+  if (!tp_proxy_prepare_finish(object, res, &error))
+  {
+    g_warning("%s: Error preparing account: %s", __FUNCTION__, error->message);
+    g_clear_error(&error);
+  }
+
+  g_signal_emit(item, signals[UPDATED], 0, TRUE);
+  g_object_unref(item);
+}
+
+static void
+create_account_cb(TpAccountManager *proxy, const gchar *out_Account,
+                  const GError *error, gpointer user_data,
+                  GObject *weak_object)
+{
+  RtcomAccountItem *item = RTCOM_ACCOUNT_ITEM(weak_object);
 
   if (error)
   {
@@ -866,19 +879,37 @@ create_account_cb(GObject *source_object, GAsyncResult *res, gpointer user_data)
   }
   else
   {
+    GError *local_error = NULL;
+
+    item->account = tp_simple_client_factory_ensure_account(
+        tp_proxy_get_factory(proxy), out_Account, NULL, &local_error);
+
     if (item->account)
     {
-      g_object_ref(item->account);
-      set_uri_schemes(item);
+      GArray *features;
+      TpAccountManager *manager = RTCOM_ACCOUNT_PLUGIN(
+          account_item_get_plugin(ACCOUNT_ITEM(item)))->manager;
+
+      if (item->set_mask & SVCF_SET)
+        set_uri_schemes(item);
+
+      features = tp_simple_client_factory_dup_account_features(
+          tp_proxy_get_factory(manager), item->account);
+
+      tp_proxy_prepare_async(item->account, (GQuark *)features->data,
+                             account_prepared_cb, g_object_ref(item));
+      g_array_unref(features);
+
       g_signal_connect(item->account, "status-changed",
                        G_CALLBACK(on_status_changed), item);
-      g_signal_emit(item, signals[UPDATED], 0, TRUE);
     }
     else
-      g_warning("%s: unable to get account.", __FUNCTION__);
+    {
+      g_warning("%s: unable to get account: %s",
+                __FUNCTION__, local_error->message);
+      g_error_free(local_error);
+    }
   }
-
-  free_store_data(item);
 }
 
 static void
@@ -888,16 +919,27 @@ create_account(RtcomAccountItem *item)
   TpAccountManager *manager;
   GHashTable *properties;
   GHashTable *conditions;
-  GValue v;
+  const gchar *service_name;
+  const gchar *display_name;
 
   g_return_if_fail(protocol != NULL);
 
+  service_name = ACCOUNT_ITEM(item)->service->service_name;
   manager = RTCOM_ACCOUNT_PLUGIN(
       account_item_get_plugin(ACCOUNT_ITEM(item)))->manager;
 
   properties = tp_asv_new(NULL, NULL);
 
-  tp_asv_set_boolean(properties, TP_IFACE_ACCOUNT ".Enabled", TRUE);
+  if (service_name)
+  {
+    gchar *icon_name = g_strdup_printf("im-%s", service_name);
+
+    tp_asv_set_string(properties, TP_PROP_ACCOUNT_SERVICE, service_name);
+    tp_asv_set_string(properties, TP_PROP_ACCOUNT_ICON, icon_name);
+    g_free(icon_name);
+  }
+
+  tp_asv_set_boolean(properties, TP_PROP_ACCOUNT_ENABLED, TRUE);
 
 #if 0
   tp_asv_set_string(properties,
@@ -908,39 +950,58 @@ create_account(RtcomAccountItem *item)
   conditions = g_hash_table_new((GHashFunc)&g_str_hash,
                                 (GEqualFunc)&g_str_equal);
   g_hash_table_insert(conditions, "ip-route", "1");
-  g_value_init(&v, TP_HASH_TYPE_STRING_STRING_MAP);
-  g_value_set_static_boxed(&v, conditions);
   g_hash_table_insert(properties,
-                      "com.nokia.Account.Interface.Conditions.Condition", &v);
+                      "com.nokia.Account.Interface.Conditions.Condition",
+                      tp_g_value_slice_new_take_boxed(
+                        TP_HASH_TYPE_STRING_STRING_MAP, conditions));
 
   if (item->set_mask & NICKNAME_SET)
-    tp_asv_set_string(properties, TP_IFACE_ACCOUNT ".Nickname", item->nickname);
+  {
+    tp_asv_set_static_string(properties, TP_PROP_ACCOUNT_NICKNAME,
+                             item->nickname);
+  }
 
   if (item->set_mask & AVATAR_SET)
   {
-    GArray data;
+    GArray *data = g_array_new(FALSE, FALSE, sizeof(guchar));
     GValueArray *arr;
 
-    data.data = item->avatar_data;
-    data.len = item->avatar_len;
-
-    g_value_init(&v, TP_STRUCT_TYPE_AVATAR);
-    g_value_take_boxed(
-      &v, dbus_g_type_specialized_construct(TP_STRUCT_TYPE_AVATAR));
-    arr = g_value_get_boxed(&v);
-    g_value_set_static_boxed(arr->values, &data);
-    g_value_set_static_string(arr->values + 1, item->avatar_mime);
-    g_hash_table_insert(properties,
-                        TP_IFACE_ACCOUNT_INTERFACE_AVATAR " .Avatar", &v);
+    g_array_append_vals(data, item->avatar_data, item->avatar_len);
+    arr = tp_value_array_build(2,
+                               TP_TYPE_UCHAR_ARRAY, data,
+                               G_TYPE_STRING, item->avatar_mime,
+                               G_TYPE_INVALID);
+    g_array_unref(data);
+    tp_asv_take_boxed(properties, TP_PROP_ACCOUNT_INTERFACE_AVATAR_AVATAR,
+                      TP_STRUCT_TYPE_AVATAR, arr);
   }
 
-  tp_account_manager_create_account_async(
-    manager, tp_protocol_get_cm_name(protocol), tp_protocol_get_name(protocol),
-    item->display_name, item->new_params, properties, create_account_cb,
-    g_object_ref(item));
+  display_name = item->display_name;
+
+  if (!display_name)
+    display_name = ACCOUNT_ITEM(item)->name;
+
+  if (!display_name)
+  {
+    display_name = g_value_get_string(g_hash_table_lookup(item->new_params,
+                                                          "account"));
+  }
+
+  tp_cli_account_manager_call_create_account(
+    manager,
+    -1,
+    tp_protocol_get_cm_name(protocol),
+    tp_protocol_get_name(protocol),
+    display_name,
+    item->new_params,
+    properties,
+    create_account_cb,
+    NULL,
+    NULL,
+    G_OBJECT(item));
 
   g_hash_table_destroy(properties);
-  g_hash_table_unref(conditions);
+  free_store_data(item);
   g_object_unref(protocol);
 }
 

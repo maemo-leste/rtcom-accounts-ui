@@ -69,7 +69,7 @@ struct _RtcomAccountPlugin
     gchar *name;
 
     /* Properties to be set in the instance init function of the derived class */
-    gchar * username_prefill;
+    gchar *username_prefill;
     guint capabilities;
 
     TpAccountManager *manager;

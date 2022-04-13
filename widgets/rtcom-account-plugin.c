@@ -64,7 +64,7 @@ rtcom_account_plugin_get_account_by_name(RtcomAccountPlugin *plugin,
         (account_item_get_plugin(ACCOUNT_ITEM(l->data)) ==
          ACCOUNT_PLUGIN(plugin)))
     {
-      const gchar *item_name = rtcom_account_item_get_unique_name(item);
+      const gchar *item_name = rtcom_account_item_get_unique_name(l->data);
 
       if (item_name && !strcmp(item_name, name))
       {
