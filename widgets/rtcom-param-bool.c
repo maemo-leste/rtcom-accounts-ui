@@ -218,3 +218,9 @@ rtcom_widget_init(RtcomWidgetIface *iface)
   iface->get_settings = rtcom_param_bool_get_settings;
   iface->set_account = rtcom_param_bool_set_account;
 }
+
+const gchar *
+rtcom_param_bool_get_field(RtcomParamBool *param)
+{
+  return param->field;
+}

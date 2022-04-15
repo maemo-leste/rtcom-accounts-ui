@@ -634,16 +634,20 @@ aui_instance_action_edit_account(AuiInstance *instance,
   if (on_finish && !strcmp(on_finish, "close"))
     priv->close_on_finish = TRUE;
 
-  /*FIXME*/
-  parameters = g_strsplit(account_name, "/", 2);
+  parameters = g_strsplit(account_name, "/", 3);
 
-  if (parameters && parameters[0] && parameters[1])
+  if (parameters && parameters[0] && parameters[1] && parameters[2])
   {
-    priv->context = context;
     struct auieditdata *data = g_slice_new(struct auieditdata);
+    gchar *service_name = g_strconcat(parameters[0], "/", parameters[1], NULL);
 
-    data->service_name = parameters[0];
-    data->user_name = parameters[1];
+    g_free(parameters[0]);
+    g_free(parameters[1]);
+
+    priv->context = context;
+
+    data->service_name = service_name;
+    data->user_name = parameters[2];
     g_object_set_data_full(G_OBJECT(instance), "auieditdata", data,
                            (GDestroyNotify)auieditdata_destroy);
     g_object_get(G_OBJECT(priv->accounts_ui),
@@ -667,7 +671,7 @@ aui_instance_action_edit_account(AuiInstance *instance,
 
     error.domain = DBUS_GERROR;
     error.code = DBUS_GERROR_INVALID_ARGS;
-    error.message = "Expected <service>/<account>";
+    error.message = "Expected <cm_name/protocol_name>/<account>";
     dbus_g_method_return_error(context, &error);
     g_strfreev(parameters);
   }
