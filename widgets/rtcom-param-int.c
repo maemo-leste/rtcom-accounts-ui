@@ -204,6 +204,13 @@ rtcom_param_int_store_settings(RtcomWidget *widget, GError **error,
   }
 
   value = rtcom_param_int_get_value(self);
+
+  if (value == G_MININT)
+  {
+    rtcom_account_item_unset_param(item, self->field);
+    return TRUE;
+  }
+
   service = RTCOM_ACCOUNT_SERVICE(account_item_get_service(ACCOUNT_ITEM(item)));
 
   if (rtcom_account_service_get_param_type(service, self->field) == G_TYPE_INT)
@@ -291,7 +298,7 @@ rtcom_param_int_settings(RtcomWidget *widget, RtcomAccountItem *item)
     else
       text = g_strdup_printf("%u", g_value_get_uint(value));
 
-    hildon_entry_set_text(&self->parent_instance, text);
+    hildon_entry_set_text(HILDON_ENTRY(self), text);
     g_free(text);
   }
   else
@@ -318,14 +325,14 @@ rtcom_param_int_get_value(RtcomParamInt *param)
 {
   const gchar *text;
 
-  g_return_val_if_fail(RTCOM_IS_PARAM_INT(param), G_MAXINT);
+  g_return_val_if_fail(RTCOM_IS_PARAM_INT(param), G_MININT);
 
   text = hildon_entry_get_text(&param->parent_instance);
 
   if (text && *text)
     return strtol(text, NULL, 10);
 
-  return G_MAXINT;
+  return G_MININT;
 }
 
 void
