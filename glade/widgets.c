@@ -95,7 +95,7 @@ sizegroup_handler(GladeXML *xml, GtkWidget *widget, const gchar *propname,
   g_object_set(widget, "size-group", group, NULL);
 }
 
-/*
+
 static GtkWidget *
 rtcom_param_bool_build_children(GladeXML *xml, GType widget_type,
                                 GladeWidgetInfo *info)
@@ -106,7 +106,6 @@ rtcom_param_bool_build_children(GladeXML *xml, GType widget_type,
 
   return widget;
 }
-*/
 
 GLADE_MODULE_CHECK_INIT void
 glade_module_register_widgets(void)
@@ -121,10 +120,10 @@ glade_module_register_widgets(void)
                         glade_standard_build_widget,
                         NULL,
                         NULL);
-  /*glade_register_widget(RTCOM_TYPE_PARAM_BOOL,
+  glade_register_widget(RTCOM_TYPE_PARAM_BOOL,
                         rtcom_param_bool_build_children,
                         NULL,
-                        NULL);*/
+                        NULL);
   glade_register_widget(RTCOM_TYPE_PARAM_INT,
                         glade_standard_build_widget,
                         NULL,
@@ -137,10 +136,10 @@ glade_module_register_widgets(void)
                         glade_standard_build_widget,
                         NULL,
                         NULL);
-  /*glade_register_widget(RTCOM_TYPE_DISPLAYNAME,
+  glade_register_widget(RTCOM_TYPE_DISPLAYNAME,
                         glade_standard_build_widget,
                         NULL,
-                        NULL);*/
+                        NULL);
 
   glade_register_custom_prop(GTK_TYPE_WIDGET,
                              "sizegroup",

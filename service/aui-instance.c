@@ -634,6 +634,7 @@ aui_instance_action_edit_account(AuiInstance *instance,
   if (on_finish && !strcmp(on_finish, "close"))
     priv->close_on_finish = TRUE;
 
+  /*FIXME*/
   parameters = g_strsplit(account_name, "/", 2);
 
   if (parameters && parameters[0] && parameters[1])

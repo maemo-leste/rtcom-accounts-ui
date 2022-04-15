@@ -18,10 +18,12 @@ librtcom_accounts_widgets_la_SOURCES =					\
 		rtcom-login.c						\
 		rtcom-param-string.c					\
 		rtcom-param-int.c					\
+		rtcom-param-bool.c					\
 		rtcom-enabled.c						\
 		rtcom-edit.c						\
 		rtcom-alias.c						\
 		rtcom-avatar.c						\
+		rtcom-displayname.c					\
 		rtcom-entry-validation.c				\
 		rtcom-account-service.c
 
