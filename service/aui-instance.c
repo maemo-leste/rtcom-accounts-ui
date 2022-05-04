@@ -67,7 +67,7 @@ enum
 
 static guint signals[LAST_SIGNAL] = { 0 };
 
-static int
+static gboolean
 aui_instance_close(AuiInstance *instance, GError **error)
 {
   AuiInstancePrivate *priv;

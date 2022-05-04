@@ -63,7 +63,7 @@ avatar_to_pixbuf(const guchar *data, gsize len, const char *mime_type)
   GdkPixbufLoader *loader;
   GdkPixbuf *pixbuf;
 
-  if (!data || !mime_type || !mime_type)
+  if (!data || !mime_type || !*mime_type)
     return NULL;
 
   loader = gdk_pixbuf_loader_new_with_mime_type(mime_type, NULL);
@@ -402,8 +402,6 @@ rtcom_account_item_set_property(GObject *object, guint property_id,
                          G_CALLBACK(on_display_name_changed), item);
         g_signal_connect(item->account, "notify::nickname",
                          G_CALLBACK(on_nickname_changed), item);
-        g_signal_connect(item->account, "notify::enabled",
-                         G_CALLBACK(on_enabled_changed), item);
         g_signal_connect(item->account, "notify::enabled",
                          G_CALLBACK(on_enabled_changed), item);
         g_signal_connect(item->account, "notify::has-been-online",
