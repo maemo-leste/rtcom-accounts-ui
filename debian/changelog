@@ -1,3 +1,9 @@
+rtcom-accounts-ui (4.140.1) unstable; urgency=low
+
+  * Fix some minor errors
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Wed, 04 May 2022 07:12:52 +0300
+
 rtcom-accounts-ui (4.140.0) unstable; urgency=low
 
   * Initial release
