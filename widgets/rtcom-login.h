@@ -47,10 +47,17 @@ struct _RtcomLogin
 };
 
 GType rtcom_login_get_type (void) G_GNUC_CONST;
+
 void rtcom_login_connect_on_register(RtcomLogin *, GCallback, gpointer);
+
 void rtcom_login_connect_on_forgot_password(RtcomLogin *, GCallback, gpointer);
+
 void rtcom_login_connect_on_advanced(RtcomLogin *, GCallback, gpointer);
+
 void rtcom_login_connect_on_define(RtcomLogin *, GCallback, gpointer);
+
+void rtcom_login_append_widget(RtcomLogin *login, GtkWidget *label,
+                               GtkWidget *widget);
 
 G_END_DECLS
 

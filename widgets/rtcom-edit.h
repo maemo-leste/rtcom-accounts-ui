@@ -45,7 +45,12 @@ struct _RtcomEdit
 };
 
 GType rtcom_edit_get_type (void) G_GNUC_CONST;
-void rtcom_edit_connect_on_advanced(RtcomEdit *, GCallback, gpointer);
+
+void rtcom_edit_connect_on_advanced(RtcomEdit *edit, GCallback cb,
+                                    gpointer user_data);
+
+void rtcom_edit_append_widget(RtcomEdit *edit, GtkWidget *label,
+                              GtkWidget *widget);
 
 G_END_DECLS
 

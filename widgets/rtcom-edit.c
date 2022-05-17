@@ -46,6 +46,9 @@ struct _RtcomEditPrivate
   gchar *username_required_server;
   gchar *username_required_server_error;
   gchar *msg_empty;
+  GtkTable *table;
+  GtkWidget *avatar_align;
+  GtkWidget *avatar_label;
 };
 
 typedef struct _RtcomEditPrivate RtcomEditPrivate;
@@ -274,24 +277,24 @@ rtcom_edit_constructor(GType type, guint n_construct_properties,
       type, n_construct_properties, construct_properties);
   RtcomEditPrivate *priv = PRIVATE(object);
   gboolean draft = FALSE;
+  gboolean supports_avatar = FALSE;
   GtkWidget *edit_info_button = NULL;
   GtkWidget *enabled = NULL;
-  gboolean supports_avatar = FALSE;
   GtkWidget *screen_widget = NULL;
-  GtkWidget *avatar_align = NULL;
-  GtkWidget *avatar_label = NULL;
-  GtkTable *table;
   const gchar *username_label_label;
   GtkWidget *username_label;
-  GtkWidget *password_widget;
+  GtkWidget *username_widget;
+  GtkWidget *password_widget = NULL;
+  GtkWidget *password_label = NULL;
   GtkWidget *align;
   GtkWidget *area;
   GtkWidget *vbox;
-  GtkWidget *password_label;
-  GtkWidget *username_widget;
   guint rows = 3;
   guint top = 1;
   guint bottom = 2;
+
+  priv->avatar_align = NULL;
+  priv->avatar_label = NULL;
 
   area = g_object_new(HILDON_TYPE_PANNABLE_AREA, NULL);
   align = gtk_alignment_new(0.0, 0.5, 1.0, 1.0);
@@ -357,6 +360,7 @@ rtcom_edit_constructor(GType type, guint n_construct_properties,
       "required-server-error", priv->username_required_server_error,
       "msg-empty", priv->msg_empty,
       NULL);
+
   if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_PASSWORD)
   {
     password_label = g_object_new(
@@ -394,49 +398,49 @@ rtcom_edit_constructor(GType type, guint n_construct_properties,
 
     if (supports_avatar)
     {
-      avatar_label = g_object_new(
+      priv->avatar_label = g_object_new(
           GTK_TYPE_LABEL,
           "label", _("accounts_fi_avatar"),
           "xalign", 0.0,
           NULL);
-      avatar_align = gtk_alignment_new(0.0, 0.5, 0.0, 1.0);
-      gtk_container_add(GTK_CONTAINER(avatar_align),
+      priv->avatar_align = gtk_alignment_new(0.0, 0.5, 0.0, 1.0);
+      gtk_container_add(GTK_CONTAINER(priv->avatar_align),
                         g_object_new(RTCOM_TYPE_AVATAR, NULL));
     }
   }
 
-  table = GTK_TABLE(gtk_table_new(rows, 2, FALSE));
-  gtk_table_set_col_spacings(table, 16);
-  gtk_table_attach(table, username_label, 0, 1, 0, 1,
+  priv->table = GTK_TABLE(gtk_table_new(rows, 2, FALSE));
+  gtk_table_set_col_spacings(priv->table, 16);
+  gtk_table_attach(priv->table, username_label, 0, 1, 0, 1,
                    GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(table, username_widget, 1, 2, 0, 1,
+  gtk_table_attach(priv->table, username_widget, 1, 2, 0, 1,
                    GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 
   if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_PASSWORD)
   {
-    gtk_table_attach(table, password_label, 0, 1, top, bottom,
+    gtk_table_attach(priv->table, password_label, 0, 1, top, bottom,
                      GTK_FILL, GTK_SHRINK, 0, 0);
-    gtk_table_attach(table, password_widget, 1, 2, top++, bottom++,
+    gtk_table_attach(priv->table, password_widget, 1, 2, top++, bottom++,
                      GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
   }
 
   if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_SCREEN_NAME)
   {
-    gtk_table_attach(table, screen_widget, 0, 1, top, bottom,
+    gtk_table_attach(priv->table, screen_widget, 0, 1, top, bottom,
                      GTK_FILL, GTK_SHRINK, 0, 0);
-    gtk_table_attach(table, priv->screen_widget, 1, 2, top++, bottom++,
+    gtk_table_attach(priv->table, priv->screen_widget, 1, 2, top++, bottom++,
                      GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
   }
 
   if (supports_avatar)
   {
-    gtk_table_attach(table, avatar_label, 0, 1, top, bottom,
+    gtk_table_attach(priv->table, priv->avatar_label, 0, 1, top, bottom,
                      GTK_FILL, GTK_SHRINK, 0, 0);
-    gtk_table_attach(table, avatar_align, 1, 2, top++, bottom++,
-                     GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
+    gtk_table_attach(priv->table, priv->avatar_align, 1, 2, top++, bottom++,
+                     GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
   }
 
-  gtk_box_pack_start(GTK_BOX(vbox), GTK_WIDGET(table), FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), GTK_WIDGET(priv->table), FALSE, FALSE, 0);
 
   if (!draft)
   {
@@ -586,4 +590,52 @@ rtcom_edit_connect_on_advanced(RtcomEdit *edit,
 {
   g_signal_connect_swapped(PRIVATE(edit)->advanced_button, "clicked",
                            cb, user_data);
+}
+
+void
+rtcom_edit_append_widget(RtcomEdit *edit, GtkWidget *label, GtkWidget *widget)
+{
+  RtcomEditPrivate *priv = PRIVATE(edit);
+
+  if (!label)
+  {
+    gtk_box_pack_start(GTK_BOX(priv->vbox), widget, FALSE, FALSE, 0);
+    gtk_box_reorder_child(GTK_BOX(priv->vbox), widget, 1);
+  }
+  else
+  {
+    guint rows;
+
+    g_object_get(priv->table, "n-rows", &rows, NULL);
+    rows++;
+    gtk_table_resize(GTK_TABLE(priv->table), rows, 2);
+
+    if (priv->avatar_label)
+      rows--;
+
+    gtk_table_attach(priv->table, label, 0, 1, rows, rows + 1,
+                     GTK_FILL, GTK_SHRINK, 0, 0);
+    gtk_table_attach(priv->table, widget, 1, 2, rows, rows + 1,
+                     GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+
+    /* keep avatar always the last element in the table */
+    if (priv->avatar_label)
+    {
+      g_object_ref(priv->avatar_label);
+      g_object_ref(priv->avatar_align);
+      gtk_container_remove(GTK_CONTAINER(priv->table), priv->avatar_label);
+      gtk_container_remove(GTK_CONTAINER(priv->table), priv->avatar_align);
+      rows++;
+      gtk_table_attach(priv->table, priv->avatar_label, 0, 1, rows, rows + 1,
+                       GTK_FILL, GTK_SHRINK, 0, 0);
+      gtk_table_attach(priv->table, priv->avatar_align, 1, 2, rows, rows + 1,
+                       GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+      g_object_unref(priv->avatar_label);
+      g_object_unref(priv->avatar_align);
+    }
+
+    gtk_widget_show(label);
+  }
+
+  gtk_widget_show(widget);
 }

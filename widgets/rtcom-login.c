@@ -49,6 +49,7 @@ struct _RtcomLoginPrivate
   gchar *username_required_server_error;
   gchar *msg_empty;
   gchar *define_username;
+  GtkTable *table;
 };
 
 typedef struct _RtcomLoginPrivate RtcomLoginPrivate;
@@ -296,11 +297,10 @@ constructor(GType type, guint n_construct_properties,
 {
   RtcomLoginPrivate *priv;
   const gchar *label;
-  GtkWidget *password_field;
-  GtkWidget *table;
+  GtkWidget *password_field = NULL;
+  GtkWidget *password_label = NULL;
   GObject *object;
   GtkWidget *username_label;
-  GtkWidget *password_label;
   GtkWidget *align;
   GtkWidget *area;
   guint top = 1;
@@ -375,6 +375,7 @@ constructor(GType type, guint n_construct_properties,
       "required", TRUE,
       "can-next", FALSE,
       NULL);
+
   if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_PASSWORD)
   {
     password_label = g_object_new(
@@ -406,28 +407,28 @@ constructor(GType type, guint n_construct_properties,
     rows++;
     hildon_button_set_alignment(HILDON_BUTTON(priv->define_username_button),
                                 0.0, 0.5, 1.0, 1.0);
-    table = gtk_table_new(rows, 2, FALSE);
-    gtk_table_attach(GTK_TABLE(table), username_label, 0, 1, 0, 1,
+    priv->table = GTK_TABLE(gtk_table_new(rows, 2, FALSE));
+    gtk_table_attach(priv->table, username_label, 0, 1, 0, 1,
                      GTK_FILL, GTK_SHRINK, 16, 0);
-    gtk_table_attach(GTK_TABLE(table), priv->username, 1, 2, 0, 1,
+    gtk_table_attach(priv->table, priv->username, 1, 2, 0, 1,
                      GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
-    gtk_table_attach(GTK_TABLE(table), priv->define_username_button, 0, 2, 1, 2,
+    gtk_table_attach(priv->table, priv->define_username_button, 0, 2, 1, 2,
                      GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
   }
   else
   {
-    table = gtk_table_new(rows, 2, FALSE);
-    gtk_table_attach(GTK_TABLE(table), username_label, 0, 1, 0, 1,
+    priv->table = GTK_TABLE(gtk_table_new(rows, 2, FALSE));
+    gtk_table_attach(priv->table, username_label, 0, 1, 0, 1,
                      GTK_FILL, GTK_SHRINK, 16, 0);
-    gtk_table_attach(GTK_TABLE(table), priv->username, 1, 2, 0, 1,
+    gtk_table_attach(priv->table, priv->username, 1, 2, 0, 1,
                      GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
   }
 
   if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_PASSWORD)
   {
-    gtk_table_attach(GTK_TABLE(table), password_label, 0, 1, top, bottom,
+    gtk_table_attach(priv->table, password_label, 0, 1, top, bottom,
                      GTK_FILL, GTK_SHRINK, 16, 0);
-    gtk_table_attach(GTK_TABLE(table), password_field, 1, 2, top, bottom,
+    gtk_table_attach(priv->table, password_field, 1, 2, top, bottom,
                      GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
   }
 
@@ -437,7 +438,8 @@ constructor(GType type, guint n_construct_properties,
                        FALSE, FALSE, 0);
   }
 
-  gtk_box_pack_start(GTK_BOX(priv->vbox), table, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(priv->vbox), GTK_WIDGET(priv->table),
+                     FALSE, FALSE, 0);
 
   if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_FORGOT_PWD)
   {
@@ -657,4 +659,33 @@ rtcom_login_connect_on_register(RtcomLogin *login, GCallback cb,
 {
   g_signal_connect_swapped(PRIVATE(login)->new_account_button, "clicked",
                            cb, user_data);
+}
+
+void
+rtcom_login_append_widget(RtcomLogin *login, GtkWidget *label,
+                          GtkWidget *widget)
+{
+  RtcomLoginPrivate *priv = PRIVATE(login);
+
+  if (!label)
+  {
+    gtk_box_pack_start(GTK_BOX(priv->vbox), widget, FALSE, FALSE, 0);
+    gtk_box_reorder_child(GTK_BOX(priv->vbox), widget, 1);
+  }
+  else
+  {
+    guint rows;
+
+    g_object_get(priv->table, "n-rows", &rows, NULL);
+    rows++;
+    gtk_table_resize(GTK_TABLE(priv->table), rows, 2);
+
+    gtk_table_attach(priv->table, label, 0, 1, rows, rows + 1,
+                     GTK_FILL, GTK_SHRINK, 0, 0);
+    gtk_table_attach(priv->table, widget, 1, 2, rows, rows + 1,
+                     GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+    gtk_widget_show(label);
+  }
+
+  gtk_widget_show(widget);
 }
