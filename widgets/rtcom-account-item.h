@@ -94,7 +94,7 @@ gboolean rtcom_account_item_store_settings (RtcomAccountItem *item,
                                             GError **error);
 
 void rtcom_account_item_save_settings (RtcomAccountItem *item,
-                                        GError **error);
+                                       GError **error);
 
 gboolean rtcom_account_item_delete (RtcomAccountItem *item);
 
@@ -110,7 +110,7 @@ void rtcom_account_item_reconnect (RtcomAccountItem *item);
 void rtcom_account_item_call_reconnect (RtcomAccountItem *item);
 
 /* store enabled setting as set in UI in contrast to the "enabled" property
- * in AccountItem representing actual McAccount state */
+ * in AccountItem representing actual TpAccount state */
 void rtcom_account_store_enabled_setting (RtcomAccountItem *item, gboolean enabled);
 gboolean rtcom_account_get_enabled_setting (RtcomAccountItem *item);
 

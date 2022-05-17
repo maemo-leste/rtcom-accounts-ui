@@ -429,7 +429,7 @@ constructor(GType type, guint n_construct_properties,
     gtk_table_attach(priv->table, password_label, 0, 1, top, bottom,
                      GTK_FILL, GTK_SHRINK, 16, 0);
     gtk_table_attach(priv->table, password_field, 1, 2, top, bottom,
-                     GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
+                     GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
   }
 
   if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_REGISTER)
@@ -681,7 +681,7 @@ rtcom_login_append_widget(RtcomLogin *login, GtkWidget *label,
     gtk_table_resize(GTK_TABLE(priv->table), rows, 2);
 
     gtk_table_attach(priv->table, label, 0, 1, rows, rows + 1,
-                     GTK_FILL, GTK_SHRINK, 0, 0);
+                     GTK_FILL, GTK_SHRINK, 16, 0);
     gtk_table_attach(priv->table, widget, 1, 2, rows, rows + 1,
                      GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(label);

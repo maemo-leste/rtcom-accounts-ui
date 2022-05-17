@@ -474,7 +474,7 @@ static void
 emptiness_changed(RtcomUsername *self)
 {
   if (self->filled_fields == (FIELD_USERNAME | FIELD_SERVER))
-    g_object_set(self, "can-next", 1, NULL);
+    g_object_set(self, "can-next", TRUE, NULL);
   else
   {
     RtcomUsernamePrivate *priv = PRIVATE(self);
