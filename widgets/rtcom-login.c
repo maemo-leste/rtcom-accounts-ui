@@ -303,8 +303,9 @@ constructor(GType type, guint n_construct_properties,
   GtkWidget *password_label;
   GtkWidget *align;
   GtkWidget *area;
-  guint bottom;
-  guint top;
+  guint top = 1;
+  guint bottom = 2;
+  guint rows = 1;
   gboolean check_uniqueness;
 
   object = G_OBJECT_CLASS(rtcom_login_parent_class)->constructor(
@@ -374,36 +375,40 @@ constructor(GType type, guint n_construct_properties,
       "required", TRUE,
       "can-next", FALSE,
       NULL);
-  password_label = g_object_new(
-      GTK_TYPE_LABEL,
-      "label", _("accounts_fi_password"),
-      "xalign", 0.0,
-      NULL);
-  password_field = g_object_new(
-      RTCOM_TYPE_PARAM_STRING,
-      "field", "password",
-      "can-next", FALSE,
-      "visibility", FALSE,
-      "required", TRUE,
-      "max_length", 64,
-      "msg-empty", priv->msg_empty,
-      "hildon_input_mode", HILDON_GTK_INPUT_MODE_FULL |
-      HILDON_GTK_INPUT_MODE_INVISIBLE,
-      NULL);
+  if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_PASSWORD)
+  {
+    password_label = g_object_new(
+          GTK_TYPE_LABEL,
+          "label", _("accounts_fi_password"),
+          "xalign", 0.0,
+          NULL);
+    password_field = g_object_new(
+          RTCOM_TYPE_PARAM_STRING,
+          "field", "password",
+          "can-next", FALSE,
+          "visibility", FALSE,
+          "required", TRUE,
+          "max_length", 64,
+          "msg-empty", priv->msg_empty,
+          "hildon_input_mode", HILDON_GTK_INPUT_MODE_FULL |
+          HILDON_GTK_INPUT_MODE_INVISIBLE,
+          NULL);
+    rows++;
+  }
 
   if (priv->define_username)
   {
     priv->define_username_button = hildon_button_new_with_text(
         HILDON_SIZE_FINGER_HEIGHT, HILDON_BUTTON_ARRANGEMENT_HORIZONTAL,
         priv->define_username, "");
-    top = 2;
-    bottom = 3;
-
+    top++;
+    bottom++;
+    rows++;
     hildon_button_set_alignment(HILDON_BUTTON(priv->define_username_button),
                                 0.0, 0.5, 1.0, 1.0);
-    table = gtk_table_new(3, 2, FALSE);
+    table = gtk_table_new(rows, 2, FALSE);
     gtk_table_attach(GTK_TABLE(table), username_label, 0, 1, 0, 1,
-                     GTK_FILL, GTK_SHRINK, 0x10u, 0);
+                     GTK_FILL, GTK_SHRINK, 16, 0);
     gtk_table_attach(GTK_TABLE(table), priv->username, 1, 2, 0, 1,
                      GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_table_attach(GTK_TABLE(table), priv->define_username_button, 0, 2, 1, 2,
@@ -411,19 +416,20 @@ constructor(GType type, guint n_construct_properties,
   }
   else
   {
-    table = gtk_table_new(2, 2, FALSE);
+    table = gtk_table_new(rows, 2, FALSE);
     gtk_table_attach(GTK_TABLE(table), username_label, 0, 1, 0, 1,
                      GTK_FILL, GTK_SHRINK, 16, 0);
     gtk_table_attach(GTK_TABLE(table), priv->username, 1, 2, 0, 1,
                      GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
-    bottom = 2;
-    top = 1;
   }
 
-  gtk_table_attach(GTK_TABLE(table), password_label, 0, 1, top, bottom,
-                   GTK_FILL, GTK_SHRINK, 16, 0);
-  gtk_table_attach(GTK_TABLE(table), password_field, 1, 2, top, bottom,
-                   GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
+  if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_PASSWORD)
+  {
+    gtk_table_attach(GTK_TABLE(table), password_label, 0, 1, top, bottom,
+                     GTK_FILL, GTK_SHRINK, 16, 0);
+    gtk_table_attach(GTK_TABLE(table), password_field, 1, 2, top, bottom,
+                     GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
+  }
 
   if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_REGISTER)
   {
