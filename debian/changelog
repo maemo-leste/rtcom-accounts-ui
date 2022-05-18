@@ -1,3 +1,11 @@
+rtcom-accounts-ui (4.141.0) unstable; urgency=low
+
+  * widgets: Make password field on first page optional
+  * widgets: Enable adding elements to login/edit page
+  * widgets: make labels alignment consistent
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Wed, 18 May 2022 05:26:11 +0300
+
 rtcom-accounts-ui (4.140.1) unstable; urgency=low
 
   * Fix some minor errors

@@ -1,4 +1,4 @@
-AC_INIT([rtcom-accounts], [4.140])
+AC_INIT([rtcom-accounts], [4.141])
 AC_CANONICAL_SYSTEM
 
 AM_CONFIG_HEADER(config.h)
