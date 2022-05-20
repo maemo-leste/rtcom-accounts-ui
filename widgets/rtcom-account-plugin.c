@@ -19,6 +19,7 @@
 
 #include "config.h"
 
+#include <gtk/gtk.h>
 #include <libaccounts/account-plugin.h>
 
 #include "rtcom-account-plugin.h"
@@ -99,9 +100,19 @@ on_account_removed_cb(TpAccountManager *am, TpAccount *account,
 static gchar *
 get_service_id(TpAccount *account)
 {
-  return g_strdup_printf("%s/%s",
-                         tp_account_get_cm_name(account),
-                         tp_account_get_protocol_name(account));
+  const gchar *protocol_name = tp_account_get_protocol_name(account);
+  const gchar *service = tp_account_get_service(account);
+
+  if (!service || !*service || !strcmp(service, protocol_name))
+  {
+    return g_strdup_printf("%s/%s", tp_account_get_cm_name(account),
+                           protocol_name);
+  }
+  else
+  {
+    return g_strdup_printf("%s/%s/%s", tp_account_get_cm_name(account),
+                           protocol_name, service);
+  }
 }
 
 static void
@@ -359,11 +370,62 @@ rtcom_account_plugin_init(RtcomAccountPlugin *plugin)
 }
 
 RtcomAccountService *
-rtcom_account_plugin_add_service(RtcomAccountPlugin *plugin, const gchar *name)
+rtcom_account_plugin_add_service(RtcomAccountPlugin *plugin,
+                                 const gchar *service_id)
 {
-  RtcomAccountService *service = rtcom_account_service_new(name, plugin);
+  RtcomAccountService *service = NULL;
+  GStrv arr;
+  guint len;
 
-  g_hash_table_insert(plugin->services, g_strdup(name), service);
+  g_return_val_if_fail(service_id != NULL, NULL);
+
+  arr = g_strsplit(service_id, "/", 3);
+  len = g_strv_length(arr);
+
+  if (len == 3)
+  {
+    if (!arr[2] || !*arr[2])
+      goto error;
+  }
+  else if (len != 2)
+    goto error;
+
+  if ((len == 2) || (len == 3))
+  {
+    if (!arr[0] || !*arr[0] || !arr[1] || !*arr[1])
+      goto error;
+
+    if ((len == 3) && !strcmp(arr[1], arr[2]))
+      goto error;
+  }
+
+  service = rtcom_account_service_new(service_id, plugin);
+
+  if (len == 3)
+  {
+    GdkPixbuf *icon;
+    gchar *icon_name = g_strconcat("im-", arr[2], NULL);
+
+    icon = gtk_icon_theme_load_icon(
+        gtk_icon_theme_get_default(), icon_name, 48, 0, NULL);
+    g_free(icon_name);
+
+    if (icon)
+    {
+      g_object_set(G_OBJECT(service), "icon", icon, NULL);
+      g_object_unref(icon);
+    }
+
+    g_object_set(G_OBJECT(service), "service-name", arr[2], NULL);
+  }
+
+  g_hash_table_insert(plugin->services, g_strdup(service_id), service);
+
+error:
+  g_strfreev(arr);
+
+  if (!service)
+    g_warning("Invalid service id, must be <cm_name/protocol_name>[/service]");
 
   return service;
 }

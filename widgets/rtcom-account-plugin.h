@@ -81,7 +81,7 @@ GType rtcom_account_plugin_get_type (void) G_GNUC_CONST;
 
 RtcomAccountService *
 rtcom_account_plugin_add_service (RtcomAccountPlugin *plugin,
-                                  const gchar *name);
+                                  const gchar *service_id);
 
 TpDBusDaemon *rtcom_account_plugin_get_dbus_daemon (RtcomAccountPlugin *plugin);
 

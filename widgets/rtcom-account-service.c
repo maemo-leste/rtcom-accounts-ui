@@ -81,7 +81,7 @@ cm_prepared_cb(GObject *object, GAsyncResult *res, gpointer user_data)
 static TpProtocol *
 get_protocol(AccountService *service)
 {
-  GStrv arr = g_strsplit(service->name, "/", 2);
+  GStrv arr = g_strsplit(service->name, "/", 3);
   gchar *cm_name = NULL;
   gchar *protocol_name = NULL;
   TpDBusDaemon *dbus;
