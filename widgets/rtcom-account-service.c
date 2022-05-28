@@ -24,6 +24,8 @@
 #include <telepathy-glib/simple-client-factory.h>
 #include <dbus/dbus.h>
 
+#include <telepathy-glib/debug.h>
+
 #include "rtcom-account-service.h"
 
 G_DEFINE_TYPE(
@@ -31,6 +33,14 @@ G_DEFINE_TYPE(
   rtcom_account_service,
   ACCOUNT_TYPE_SERVICE
 );
+
+enum
+{
+  READY,
+  LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL] = { 0 };
 
 static GQuark connection_data_quark = 0;
 
@@ -62,35 +72,67 @@ rtcom_account_service_finalize(GObject *object)
 static void
 cm_prepared_cb(GObject *object, GAsyncResult *res, gpointer user_data)
 {
-  gpointer *data = user_data;
+  AccountService *service = user_data;
   TpConnectionManager *cm = (TpConnectionManager *)object;
   GError *error = NULL;
 
   if (!tp_proxy_prepare_finish(object, res, &error))
   {
     g_warning("Error preparing connection manager: %s\n", error->message);
+    g_signal_emit(service, signals[READY], 0, error);
+
     g_error_free(error);
   }
   else
-    data[2] = tp_connection_manager_get_protocol_object(cm, data[0]);
+  {
+    GStrv arr = g_strsplit(service->name, "/", 3);
+    TpProtocol *protocol;
+    const gchar *icon_name;
 
-  g_main_loop_quit(data[1]);
+    protocol = tp_connection_manager_get_protocol_object(cm, arr[1]);
+    RTCOM_ACCOUNT_SERVICE(service)->protocol = protocol;
+
+    g_warn_if_fail(protocol != NULL);
+
+    if (protocol)
+    {
+      g_object_ref(protocol);
+
+      if (!service->display_name)
+      {
+        service->display_name =
+            g_strconcat(tp_protocol_get_english_name(protocol),
+                        " (", arr[0], ")", NULL);
+      }
+
+      if (!service->icon)
+      {
+        icon_name = tp_protocol_get_icon_name(protocol);
+
+        if (icon_name)
+        {
+          service->icon = gtk_icon_theme_load_icon(
+                gtk_icon_theme_get_default(), icon_name, 48, 0, NULL);
+        }
+      }
+    }
+
+    g_strfreev(arr);
+    g_signal_emit(service, signals[READY], 0, NULL);
+  }
+
+  g_object_unref(service);
 }
 
-
-static TpProtocol *
-get_protocol(AccountService *service)
+static void
+get_service_properties(AccountService *service)
 {
   GStrv arr = g_strsplit(service->name, "/", 3);
-  gchar *cm_name = NULL;
-  gchar *protocol_name = NULL;
-  TpDBusDaemon *dbus;
-  TpConnectionManager *cm;
+  const gchar *cm_name = NULL;
+  const gchar *protocol_name = NULL;
   GError *error = NULL;
-  TpProtocol *protocol = NULL;
-  gpointer data[3];
-  GMainLoop *loop;
-  const GQuark features[] = {TP_CONNECTION_MANAGER_FEATURE_CORE, 0};
+  TpDBusDaemon *dbus_daemon;
+  TpConnectionManager *cm = NULL;
 
   if (arr && arr[0] && arr[1])
   {
@@ -98,41 +140,37 @@ get_protocol(AccountService *service)
     protocol_name = arr[1];
   }
 
-  g_return_val_if_fail(cm_name != NULL, NULL);
-  g_return_val_if_fail(protocol_name != NULL, NULL);
+  g_warn_if_fail(cm_name != NULL);
+  g_warn_if_fail(protocol_name != NULL);
 
-  dbus = tp_dbus_daemon_new(dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL));
-  cm = tp_connection_manager_new(dbus, cm_name, NULL, &error);
+  if (!cm_name || !protocol_name)
+    goto err;
+
+  dbus_daemon = tp_dbus_daemon_dup(&error);
+
+  if (dbus_daemon)
+  {
+    cm = tp_connection_manager_new(dbus_daemon, cm_name, NULL, &error);
+    g_object_unref(dbus_daemon);
+  }
 
   if (error)
   {
     g_warning("%s: Failed to create connection manager for %s: [%s]",
               __FUNCTION__, cm_name, error->message);
-    g_strfreev(arr);
     g_error_free(error);
-    return NULL;
+    goto err;
   }
 
-  tp_connection_manager_activate(cm);
-  loop = g_main_loop_new(NULL, FALSE);
-  data[0] = protocol_name;
-  data[1] = loop;
-  data[2] = NULL; /* out */
-  tp_proxy_prepare_async(cm, features, cm_prepared_cb, data);
+  else
+  {
+    tp_connection_manager_activate(cm);
+    tp_proxy_prepare_async(cm, NULL, cm_prepared_cb, g_object_ref(service));
+    g_object_unref(cm);
+  }
 
-  GDK_THREADS_LEAVE();
-  g_main_loop_run(loop);
-  GDK_THREADS_ENTER();
-
-  if (data[2])
-    protocol = g_object_ref(data[2]);
-
-  g_main_loop_unref(loop);
-  g_object_unref(cm);
-  g_object_unref(dbus);
+err:
   g_strfreev(arr);
-
-  return protocol;
 }
 
 static GObject *
@@ -141,27 +179,11 @@ rtcom_account_service_constructor(GType type, guint n_construct_properties,
 {
   GObject *object;
   AccountService *service;
-  TpProtocol *protocol;
-  const gchar *icon_name;
 
   object = G_OBJECT_CLASS(rtcom_account_service_parent_class)->
     constructor(type, n_construct_properties, construct_properties);
 
   service = ACCOUNT_SERVICE(object);
-
-  protocol = get_protocol(service);
-  RTCOM_ACCOUNT_SERVICE(service)->protocol = protocol;
-
-  g_return_val_if_fail(protocol != NULL, object);
-
-  service->display_name = g_strdup(tp_protocol_get_english_name(protocol));
-  icon_name = tp_protocol_get_icon_name(protocol);
-
-  if (icon_name)
-  {
-    service->icon = gtk_icon_theme_load_icon(
-        gtk_icon_theme_get_default(), icon_name, 48, 0, NULL);
-  }
 
   RTCOM_ACCOUNT_SERVICE(service)->successful_msg = NULL;
   RTCOM_ACCOUNT_SERVICE(service)->account_domains = NULL;
@@ -169,6 +191,8 @@ rtcom_account_service_constructor(GType type, guint n_construct_properties,
   /* we don't have those in telepathy */
   service->supports_avatar = TRUE;
   service->priority = 0;
+
+  get_service_properties(service);
 
   return object;
 }
@@ -181,6 +205,11 @@ rtcom_account_service_class_init(RtcomAccountServiceClass *klass)
   object_class->dispose = rtcom_account_service_dispose;
   object_class->finalize = rtcom_account_service_finalize;
   object_class->constructor = rtcom_account_service_constructor;
+
+  signals[READY] = g_signal_new(
+      "ready", G_TYPE_FROM_CLASS(klass),
+      G_SIGNAL_ACTION | G_SIGNAL_RUN_LAST, 0, NULL, NULL,
+      g_cclosure_marshal_VOID__POINTER, G_TYPE_NONE, 1, G_TYPE_POINTER);
 }
 
 static void

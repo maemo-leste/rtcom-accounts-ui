@@ -27,6 +27,7 @@
 struct _RtcomAccountPluginPrivate
 {
   gboolean initialized;
+  GList *pending_services;
 };
 
 typedef struct _RtcomAccountPluginPrivate RtcomAccountPluginPrivate;
@@ -237,6 +238,7 @@ _add_accounts(RtcomAccountPlugin *plugin)
 
   g_list_free_full(accounts, g_object_unref);
   g_object_unref(accounts_list);
+
   g_object_notify(G_OBJECT(plugin), "initialized");
 }
 
@@ -244,11 +246,6 @@ static gboolean
 rtcom_account_plugin_setup(AccountPlugin *account_plugin,
                            AccountsList *accounts_list)
 {
-  RtcomAccountPlugin *plugin = RTCOM_ACCOUNT_PLUGIN(account_plugin);
-
-  if (tp_proxy_is_prepared(plugin->manager, TP_ACCOUNT_MANAGER_FEATURE_CORE))
-    _add_accounts(plugin);
-
   return TRUE;
 }
 
@@ -352,14 +349,6 @@ rtcom_account_plugin_init(RtcomAccountPlugin *plugin)
 
   plugin->manager = tp_account_manager_dup();
 
-  tp_proxy_prepare_async(plugin->manager, NULL, on_manager_ready, plugin);
-
-  g_signal_connect(plugin->manager, "account-validity-changed",
-                   G_CALLBACK(on_account_validity_changed_cb), plugin);
-
-  g_signal_connect(plugin->manager, "account-removed",
-                   G_CALLBACK(on_account_removed_cb), plugin);
-
   plugin->services = g_hash_table_new_full(
       (GHashFunc)&g_str_hash,
       (GEqualFunc)&g_str_equal,
@@ -367,17 +356,46 @@ rtcom_account_plugin_init(RtcomAccountPlugin *plugin)
       (GDestroyNotify)&g_object_unref);
 
   priv->initialized = FALSE;
+  priv->pending_services = NULL;
+}
+
+static void
+service_ready_cb(RtcomAccountService *service, GError *error,
+                 gpointer user_data)
+{
+  RtcomAccountPlugin *plugin = user_data;
+  RtcomAccountPluginPrivate *priv = PRIVATE(user_data);
+
+  priv->pending_services = g_list_remove(priv->pending_services, service);
+
+  if (!priv->pending_services)
+  {
+    tp_proxy_prepare_async(plugin->manager, NULL, on_manager_ready, plugin);
+
+    g_signal_connect(plugin->manager, "account-validity-changed",
+                     G_CALLBACK(on_account_validity_changed_cb), plugin);
+
+    g_signal_connect(plugin->manager, "account-removed",
+                     G_CALLBACK(on_account_removed_cb), plugin);
+  }
+
+  g_signal_handlers_disconnect_matched(
+    service, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
+    service_ready_cb, user_data);
 }
 
 RtcomAccountService *
 rtcom_account_plugin_add_service(RtcomAccountPlugin *plugin,
                                  const gchar *service_id)
 {
+  RtcomAccountPluginPrivate *priv = PRIVATE(plugin);
   RtcomAccountService *service = NULL;
   GStrv arr;
   guint len;
 
   g_return_val_if_fail(service_id != NULL, NULL);
+
+  g_assert(priv->initialized == FALSE);
 
   arr = g_strsplit(service_id, "/", 3);
   len = g_strv_length(arr);
@@ -419,6 +437,8 @@ rtcom_account_plugin_add_service(RtcomAccountPlugin *plugin,
     g_object_set(G_OBJECT(service), "service-name", arr[2], NULL);
   }
 
+  priv->pending_services = g_list_append(priv->pending_services, service);
+  g_signal_connect(service, "ready", G_CALLBACK(service_ready_cb), plugin);
   g_hash_table_insert(plugin->services, g_strdup(service_id), service);
 
 error:
@@ -434,4 +454,16 @@ TpDBusDaemon *
 rtcom_account_plugin_get_dbus_daemon(RtcomAccountPlugin *plugin)
 {
   return tp_proxy_get_dbus_daemon(plugin->manager);
+}
+
+void
+rtcom_account_plugin_initialized(RtcomAccountPlugin *plugin)
+{
+  RtcomAccountPluginPrivate *priv = PRIVATE(plugin);
+
+  if (!g_hash_table_size(plugin->services))
+  {
+    priv->initialized = TRUE;
+    g_object_notify(G_OBJECT(plugin), "initialized");
+  }
 }

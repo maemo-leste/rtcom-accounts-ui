@@ -65,7 +65,7 @@ struct _RtcomAccountPlugin
     AccountPlugin parent_instance;
 
     /*< protected >*/
-    /** key is <cm_name>/<protocol_name> */
+    /** key is <cm_name>/<protocol_name>[/service_name] */
     GHashTable *services;
     /* The name must be set in the instance init function of the derived class */
     gchar *name;
@@ -82,6 +82,9 @@ GType rtcom_account_plugin_get_type (void) G_GNUC_CONST;
 RtcomAccountService *
 rtcom_account_plugin_add_service (RtcomAccountPlugin *plugin,
                                   const gchar *service_id);
+
+void
+rtcom_account_plugin_initialized (RtcomAccountPlugin *plugin);
 
 TpDBusDaemon *rtcom_account_plugin_get_dbus_daemon (RtcomAccountPlugin *plugin);
 
