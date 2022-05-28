@@ -1,3 +1,9 @@
+rtcom-accounts-ui (4.142.0) unstable; urgency=low
+
+  * widgets: implement async service protocol initialization
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Sat, 25 May 2022 14:19:32 +0300
+
 rtcom-accounts-ui (4.141.0) unstable; urgency=low
 
   * widgets: Make password field on first page optional
