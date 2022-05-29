@@ -579,15 +579,32 @@ rtcom_account_item_new(TpAccount *account, RtcomAccountService *service)
   return item;
 }
 
+static gboolean
+rtcom_account_item_verify_parameter(RtcomAccountItem *item, const gchar *name)
+{
+  AccountService *service = account_item_get_service(ACCOUNT_ITEM(item));
+
+  if (tp_protocol_has_param(RTCOM_ACCOUNT_SERVICE(service)->protocol, name))
+    return TRUE;
+
+  g_warning("Parameter %s is not supported by service %s", name,
+            service->name);
+
+  return FALSE;
+}
+
 void
 rtcom_account_item_store_param_boolean(RtcomAccountItem *item,
                                        const gchar *name, gboolean value)
 {
-  GValue *v = g_new0(GValue, 1);
+  GValue *v;
 
+  if (!rtcom_account_item_verify_parameter(item, name))
+    return;
+
+  v = g_new0(GValue, 1);
   g_value_init(v, G_TYPE_BOOLEAN);
   g_value_set_boolean(v, value);
-
   g_hash_table_insert(item->new_params, g_strdup(name), v);
 }
 
@@ -595,11 +612,14 @@ void
 rtcom_account_item_store_param_uint(RtcomAccountItem *item, const gchar *name,
                                     guint value)
 {
-  GValue *v = g_new0(GValue, 1);
+  GValue *v;
 
+  if (!rtcom_account_item_verify_parameter(item, name))
+    return;
+
+  v = g_new0(GValue, 1);
   g_value_init(v, G_TYPE_UINT);
   g_value_set_uint(v, value);
-
   g_hash_table_insert(item->new_params, g_strdup(name), v);
 }
 
@@ -607,11 +627,14 @@ void
 rtcom_account_item_store_param_int(RtcomAccountItem *item, const gchar *name,
                                    int value)
 {
-  GValue *v = g_new0(GValue, 1);
+  GValue *v;
 
+  if (!rtcom_account_item_verify_parameter(item, name))
+    return;
+
+  v = g_new0(GValue, 1);
   g_value_init(v, G_TYPE_INT);
   g_value_set_int(v, value);
-
   g_hash_table_insert(item->new_params, g_strdup(name), v);
 }
 
@@ -619,8 +642,12 @@ void
 rtcom_account_item_store_param_string(RtcomAccountItem *item, const gchar *name,
                                       const gchar *value)
 {
-  GValue *v = g_new0(GValue, 1);
+  GValue *v;
 
+  if (!rtcom_account_item_verify_parameter(item, name))
+    return;
+
+  v = g_new0(GValue, 1);
   g_value_init(v, G_TYPE_STRING);
   g_value_set_string(v, value);
 
