@@ -1,3 +1,9 @@
+rtcom-accounts-ui (4.142.1) unstable; urgency=low
+
+  * widgets: Fix tp_simple_client_factory_ensure_connection() call
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Sun, 29 May 2022 13:05:41 +0300
+
 rtcom-accounts-ui (4.142.0) unstable; urgency=low
 
   * widgets: implement async service protocol initialization
