@@ -20,9 +20,9 @@
 #include "config.h"
 
 #include <conic/conic.h>
+#include <dbus/dbus.h>
 #include <hildon/hildon.h>
 #include <telepathy-glib/simple-client-factory.h>
-#include <dbus/dbus.h>
 
 #include <telepathy-glib/debug.h>
 
@@ -101,8 +101,8 @@ cm_prepared_cb(GObject *object, GAsyncResult *res, gpointer user_data)
       if (!service->display_name)
       {
         service->display_name =
-            g_strconcat(tp_protocol_get_english_name(protocol),
-                        " (", arr[0], ")", NULL);
+          g_strconcat(tp_protocol_get_english_name(protocol),
+                      " (", arr[0], ")", NULL);
       }
 
       if (!service->icon)
@@ -112,7 +112,7 @@ cm_prepared_cb(GObject *object, GAsyncResult *res, gpointer user_data)
         if (icon_name)
         {
           service->icon = gtk_icon_theme_load_icon(
-                gtk_icon_theme_get_default(), icon_name, 48, 0, NULL);
+              gtk_icon_theme_get_default(), icon_name, 48, 0, NULL);
         }
       }
     }
@@ -161,7 +161,6 @@ get_service_properties(AccountService *service)
     g_error_free(error);
     goto err;
   }
-
   else
   {
     tp_connection_manager_activate(cm);
@@ -467,10 +466,11 @@ _request_connection_cb(TpConnectionManager *proxy, const gchar *out_Bus_Name,
   else
   {
     GError *local_error = NULL;
+    TpSimpleClientFactory *factory = tp_simple_client_factory_new (NULL);;
 
-    cd->tp_conn =
-      tp_simple_client_factory_ensure_connection(
-        tp_proxy_get_factory(proxy), out_Object_Path, NULL, &local_error);
+    cd->tp_conn = tp_simple_client_factory_ensure_connection(
+          factory, out_Object_Path, NULL, &local_error);
+    g_object_unref (factory);
 
     if (cd->tp_conn)
     {
@@ -490,9 +490,20 @@ _request_connection_cb(TpConnectionManager *proxy, const gchar *out_Bus_Name,
     }
     else
     {
-      g_warning("%s, tp_conn_new returned NULL (%s)",
-                __FUNCTION__, local_error->message);
-      g_error_free(local_error);
+      if (local_error)
+      {
+        g_warning(
+          "%s, tp_simple_client_factory_ensure_connection returned NULL (%s)",
+          __FUNCTION__, local_error->message);
+        g_error_free(local_error);
+      }
+      else
+      {
+        g_warning(
+          "%s, tp_simple_client_factory_ensure_connection returned NULL",
+          __FUNCTION__);
+      }
+
       _connection_finished(requester, ACCOUNT_ERROR_CONNECTION_FAILED);
     }
   }
