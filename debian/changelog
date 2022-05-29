@@ -1,3 +1,9 @@
+rtcom-accounts-ui (4.142.2) unstable; urgency=low
+
+  * widgets: Ignore unsupported protocol parameters
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Sun, 29 May 2022 22:47:35 +0300
+
 rtcom-accounts-ui (4.142.1) unstable; urgency=low
 
   * widgets: Fix tp_simple_client_factory_ensure_connection() call
