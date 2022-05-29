@@ -498,6 +498,23 @@ rtcom_login_map(GtkWidget *widget)
 }
 
 static void
+rtcom_login_set_account(RtcomPage *page, RtcomAccountItem *account)
+{
+#if 0 /* FIXME - reconsider if disabling register button is an option */
+  AccountService *service = account_item_get_service(ACCOUNT_ITEM(account));
+
+  if (rtcom_account_service_get_param_type(RTCOM_ACCOUNT_SERVICE(service),
+                                           "register") == G_TYPE_INVALID)
+  {
+    RtcomLoginPrivate *priv = PRIVATE(page);
+
+    gtk_widget_set_sensitive(priv->new_account_button, FALSE);
+  }
+#endif
+  RTCOM_PAGE_CLASS(rtcom_login_parent_class)->set_account(page, account);
+}
+
+static void
 rtcom_login_class_init(RtcomLoginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS(klass);
@@ -510,6 +527,8 @@ rtcom_login_class_init(RtcomLoginClass *klass)
 
   widget_class->map = rtcom_login_map;
   widget_class->size_request = rtcom_login_size_request;
+
+  RTCOM_PAGE_CLASS(klass)->set_account = rtcom_login_set_account;
 
   g_object_class_install_property(
     object_class, PROP_USERNAME_PREFILL,
