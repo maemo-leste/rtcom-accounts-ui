@@ -388,6 +388,7 @@ rtcom_account_item_set_property(GObject *object, guint property_id,
         GQuark account_features[] =
         {
           TP_ACCOUNT_FEATURE_CORE,
+          TP_ACCOUNT_FEATURE_ADDRESSING,
           0
         };
 
@@ -862,8 +863,10 @@ rtcom_account_item_is_online(RtcomAccountItem *item)
 }
 
 static void
-set_uri_schemes(RtcomAccountItem *item, gchar **scheme)
+set_uri_schemes(RtcomAccountItem *item)
 {
+  gchar **scheme = item->secondary_vcard_fields;
+
   g_return_if_fail(scheme != NULL);
 
   while (*scheme)
@@ -885,6 +888,11 @@ account_prepared_cb(GObject *object, GAsyncResult *res, gpointer user_data)
     g_warning("%s: Error preparing account: %s", __FUNCTION__, error->message);
     g_clear_error(&error);
   }
+
+  if (item->set_mask & SVCF_SET)
+    set_uri_schemes(item);
+
+  free_store_data(item);
 
   g_signal_emit(item, signals[UPDATED], 0, TRUE);
   g_object_unref(item);
@@ -911,20 +919,15 @@ create_account_cb(TpAccountManager *proxy, const gchar *out_Account,
 
     if (item->account)
     {
-      GArray *features;
-      TpAccountManager *manager = RTCOM_ACCOUNT_PLUGIN(
-          account_item_get_plugin(ACCOUNT_ITEM(item)))->manager;
+      GQuark features[] =
+      {
+        TP_ACCOUNT_FEATURE_CORE,
+        TP_ACCOUNT_FEATURE_ADDRESSING,
+        0
+      };
 
-      if (item->set_mask & SVCF_SET)
-        set_uri_schemes(item, user_data);
-
-      features = tp_simple_client_factory_dup_account_features(
-          tp_proxy_get_factory(manager), item->account);
-
-      tp_proxy_prepare_async(item->account, (GQuark *)features->data,
+      tp_proxy_prepare_async(item->account, features,
                              account_prepared_cb, g_object_ref(item));
-      g_array_unref(features);
-
       g_signal_connect(item->account, "status-changed",
                        G_CALLBACK(on_status_changed), item);
     }
@@ -933,6 +936,7 @@ create_account_cb(TpAccountManager *proxy, const gchar *out_Account,
       g_warning("%s: unable to get account: %s",
                 __FUNCTION__, local_error->message);
       g_error_free(local_error);
+      free_store_data(item);
     }
   }
 }
@@ -1021,12 +1025,11 @@ create_account(RtcomAccountItem *item)
     item->new_params,
     properties,
     create_account_cb,
-    g_strdupv(item->secondary_vcard_fields),
-    (GDestroyNotify)g_strfreev,
+    NULL,
+    NULL,
     G_OBJECT(item));
 
   g_hash_table_destroy(properties);
-  free_store_data(item);
   g_object_unref(protocol);
 }
 
@@ -1182,7 +1185,7 @@ rtcom_account_item_save_settings(RtcomAccountItem *item, GError **error)
     }
 
     if (item->set_mask & SVCF_SET)
-      set_uri_schemes(item, item->secondary_vcard_fields);
+      set_uri_schemes(item);
 
     if (item->set_mask & ENABLED_SET)
     {
