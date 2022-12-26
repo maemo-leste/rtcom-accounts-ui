@@ -397,6 +397,15 @@ _account_failed(RtcomDialogContext *context, AccountErrorCode error_code)
       gtk_widget_get_toplevel(priv->start_page), NULL,
       _("accounts_ti_auth_failed"));
   }
+  else if (error_code == ACCOUNT_ERROR_CONNECTION_FAILED)
+  {
+    GtkWidget *toplevel = gtk_widget_get_toplevel(priv->start_page);
+    GtkWindow* window = gtk_window_get_transient_for(GTK_WINDOW(toplevel));
+
+    hildon_banner_show_information(
+          GTK_WIDGET(window), NULL,
+          _("accounts_fi_problems_service_connection"));
+  }
 
   g_signal_emit_by_name(context, "operation-async", &error);
 }
