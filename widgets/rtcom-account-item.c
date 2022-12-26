@@ -862,9 +862,9 @@ rtcom_account_item_is_online(RtcomAccountItem *item)
 }
 
 static void
-set_uri_schemes(RtcomAccountItem *item)
+set_uri_schemes(RtcomAccountItem *item, gchar **scheme)
 {
-  gchar **scheme = item->secondary_vcard_fields;
+  g_return_if_fail(scheme != NULL);
 
   while (*scheme)
   {
@@ -916,7 +916,7 @@ create_account_cb(TpAccountManager *proxy, const gchar *out_Account,
           account_item_get_plugin(ACCOUNT_ITEM(item)))->manager;
 
       if (item->set_mask & SVCF_SET)
-        set_uri_schemes(item);
+        set_uri_schemes(item, user_data);
 
       features = tp_simple_client_factory_dup_account_features(
           tp_proxy_get_factory(manager), item->account);
@@ -1021,8 +1021,8 @@ create_account(RtcomAccountItem *item)
     item->new_params,
     properties,
     create_account_cb,
-    NULL,
-    NULL,
+    g_strdupv(item->secondary_vcard_fields),
+    (GDestroyNotify)g_strfreev,
     G_OBJECT(item));
 
   g_hash_table_destroy(properties);
@@ -1182,7 +1182,7 @@ rtcom_account_item_save_settings(RtcomAccountItem *item, GError **error)
     }
 
     if (item->set_mask & SVCF_SET)
-      set_uri_schemes(item);
+      set_uri_schemes(item, item->secondary_vcard_fields);
 
     if (item->set_mask & ENABLED_SET)
     {
