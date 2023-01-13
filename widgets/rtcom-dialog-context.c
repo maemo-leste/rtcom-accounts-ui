@@ -397,7 +397,7 @@ _account_failed(RtcomDialogContext *context, AccountErrorCode error_code)
       gtk_widget_get_toplevel(priv->start_page), NULL,
       _("accounts_ti_auth_failed"));
   }
-  else if (error_code == ACCOUNT_ERROR_CONNECTION_FAILED)
+  else if (error_code != ACCOUNT_ERROR_USER_CANCELLED)
   {
     GtkWidget *toplevel = gtk_widget_get_toplevel(priv->start_page);
     GtkWindow* window = gtk_window_get_transient_for(GTK_WINDOW(toplevel));
@@ -456,6 +456,28 @@ connection_status_changed_cb(RtcomAccountItem *item, TpConnectionStatus status,
         case TP_CONNECTION_STATUS_REASON_REQUESTED:
         {
           error_code = ACCOUNT_ERROR_CONNECTION_FAILED;
+          break;
+        }
+        case TP_CONNECTION_STATUS_REASON_NAME_IN_USE:
+        {
+          error_code = ACCOUNT_ERROR_NAME_IN_USE;
+          break;
+        }
+        case TP_CONNECTION_STATUS_REASON_ENCRYPTION_ERROR:
+        /* fall-through */
+        case TP_CONNECTION_STATUS_REASON_CERT_NOT_PROVIDED:
+        case TP_CONNECTION_STATUS_REASON_CERT_UNTRUSTED:
+        case TP_CONNECTION_STATUS_REASON_CERT_EXPIRED:
+        case TP_CONNECTION_STATUS_REASON_CERT_NOT_ACTIVATED:
+        case TP_CONNECTION_STATUS_REASON_CERT_HOSTNAME_MISMATCH:
+        case TP_CONNECTION_STATUS_REASON_CERT_FINGERPRINT_MISMATCH:
+        case TP_CONNECTION_STATUS_REASON_CERT_SELF_SIGNED:
+        case TP_CONNECTION_STATUS_REASON_CERT_OTHER_ERROR:
+        case TP_CONNECTION_STATUS_REASON_CERT_REVOKED:
+        case TP_CONNECTION_STATUS_REASON_CERT_INSECURE:
+        case TP_CONNECTION_STATUS_REASON_CERT_LIMIT_EXCEEDED:
+        {
+          error_code = ACCOUNT_ERROR_VERIFICATION_FAILED;
           break;
         }
         default:
