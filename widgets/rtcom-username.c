@@ -893,6 +893,7 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
     else
     {
       gchar **split = g_strsplit(username_text, "@", 0);
+      gchar *server_text_idn;
 
       g_assert(split);
 
@@ -927,13 +928,17 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
         return FALSE;
       }
 
-      if (!rtcom_entry_validation_validate(self->server_validation, server_text,
-                                           NULL, error))
+      server_text_idn = g_hostname_to_ascii(server_text);
+
+      if (!rtcom_entry_validation_validate(self->server_validation,
+                                           server_text_idn, NULL, error))
       {
+        g_free(server_text_idn);
         g_strfreev(split);
         goto error_server;
       }
 
+      g_free(server_text_idn);
       g_strfreev(split);
     }
   }
