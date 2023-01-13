@@ -818,7 +818,7 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
   RtcomUsername *self = RTCOM_USERNAME(widget);
   const gchar *username_text;
   const gchar *server_text = NULL;
-  const gchar *username;
+  gchar *username = NULL;
 
   username_text = gtk_entry_get_text(GTK_ENTRY(self->username_editor));
 
@@ -845,7 +845,7 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
       goto error_username;
     }
 
-    username = username_text;
+    username = g_strdup(username_text);
   }
   else
   {
@@ -888,7 +888,7 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
         return FALSE;
       }
 
-      username = username_text;
+      username = g_strdup(username_text);
     }
     else
     {
@@ -939,6 +939,7 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
       }
 
       g_free(server_text_idn);
+      username = g_strdup(username);
       g_strfreev(split);
     }
   }
@@ -1003,9 +1004,12 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
       g_set_error(error, ACCOUNT_ERROR, ACCOUNT_ERROR_ALREADY_EXISTS,
                   fmt, username, account_service_get_display_name(service));
       rtcom_widget_set_error_widget(RTCOM_WIDGET(self), self->username_editor);
+      g_free(username);
       return FALSE;
     }
   }
+
+  g_free(username);
 
   return TRUE;
 
