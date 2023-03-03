@@ -1,3 +1,9 @@
+rtcom-accounts-ui (4.142.7) unstable; urgency=low
+
+  * Increase the version to fix broken repo
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Fri, 03 Mar 2023 11:20:25 +0200
+
 rtcom-accounts-ui (4.142.6) unstable; urgency=low
 
   * widgets: Always show general error message if no precise one exists
