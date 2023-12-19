@@ -1,3 +1,9 @@
+rtcom-accounts-ui (4.142.8) unstable; urgency=low
+
+  * widgets: do not override protocol defaults if account parameter is not set
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Tue, 19 Dec 2023 12:59:56 +0200
+
 rtcom-accounts-ui (4.142.7) unstable; urgency=low
 
   * Increase the version to fix broken repo
