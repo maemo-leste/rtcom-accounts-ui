@@ -301,8 +301,6 @@ rtcom_param_int_settings(RtcomWidget *widget, RtcomAccountItem *item)
     hildon_entry_set_text(HILDON_ENTRY(self), text);
     g_free(text);
   }
-  else
-    hildon_entry_set_text(HILDON_ENTRY(self), "");
 }
 
 static void

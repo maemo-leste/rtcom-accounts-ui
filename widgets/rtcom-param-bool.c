@@ -152,22 +152,23 @@ rtcom_param_bool_get_settings(RtcomWidget *widget, RtcomAccountItem *item)
 {
   RtcomParamBool *self = RTCOM_PARAM_BOOL(widget);
   GHashTable *parameters;
-  gboolean active = FALSE;
+  const GValue *v;
 
   if (!self->field)
     return;
 
   parameters = (GHashTable *)tp_account_get_parameters(item->account);
 
-  if (parameters)
+  if (!parameters)
+    return;
+
+  v = g_hash_table_lookup(parameters, self->field);
+
+  if (v)
   {
-    const GValue *v = g_hash_table_lookup(parameters, self->field);
-
-    if (v)
-      active = g_value_get_boolean(v);
+    hildon_check_button_set_active(&self->parent_instance,
+                                   g_value_get_boolean(v));
   }
-
-  hildon_check_button_set_active(&self->parent_instance, active);
 }
 
 static void
