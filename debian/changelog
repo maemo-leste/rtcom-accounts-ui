@@ -1,3 +1,9 @@
+rtcom-accounts-ui (4.142.9) unstable; urgency=low
+
+  * widgets: Initialize the features we need by default on account
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Sat, 06 Jan 2024 17:42:32 +0200
+
 rtcom-accounts-ui (4.142.8) unstable; urgency=low
 
   * widgets: do not override protocol defaults if account parameter is not set
