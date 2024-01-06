@@ -21,6 +21,7 @@
 
 #include <gtk/gtk.h>
 #include <libaccounts/account-plugin.h>
+#include <telepathy-glib/simple-client-factory.h>
 
 #include "rtcom-account-plugin.h"
 
@@ -310,6 +311,14 @@ rtcom_account_plugin_class_init(RtcomAccountPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS(klass);
   AccountPluginClass *plugin_class = ACCOUNT_PLUGIN_CLASS(klass);
+  TpAccountManager *manager;
+  TpSimpleClientFactory *factory;
+  GQuark account_features[] =
+  {
+    TP_ACCOUNT_FEATURE_ADDRESSING,
+    TP_ACCOUNT_FEATURE_CONNECTION,
+    0
+  };
 
   object_class->dispose = rtcom_account_plugin_dispose;
   object_class->finalize = rtcom_account_plugin_finalize;
@@ -324,6 +333,14 @@ rtcom_account_plugin_class_init(RtcomAccountPluginClass *klass)
 
   g_object_class_override_property(
     object_class, PROP_INITIALIZED, "initialized");
+
+  factory = tp_simple_client_factory_new(NULL);
+  tp_simple_client_factory_add_account_features(factory, account_features);
+  manager = tp_account_manager_new_with_factory(factory);
+  tp_account_manager_set_default(manager);
+
+  g_object_unref(factory);
+  g_object_unref(manager);
 }
 
 void

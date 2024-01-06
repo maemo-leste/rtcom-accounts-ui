@@ -292,22 +292,11 @@ rtcom_account_item_finalize(GObject *object)
 }
 
 static void
-ready_cb(GObject *object, GAsyncResult *res, gpointer user_data)
+update_account_item(AccountItem *item, TpAccount *account)
 {
-  AccountItem *item = user_data;
-  TpAccount *account = (TpAccount *)object;
-  GError *error = NULL;
   const GValue *v;
   gboolean bval;
   const gchar *display_name;
-
-  if (!tp_proxy_prepare_finish(object, res, &error))
-  {
-    g_warning("%s: Could not prepare account %s: %s", __FUNCTION__,
-              tp_account_get_path_suffix(account), error->message);
-    g_clear_error(&error);
-    return;
-  }
 
   v = g_hash_table_lookup((GHashTable *)tp_account_get_parameters(account),
                           "account");
@@ -385,13 +374,6 @@ rtcom_account_item_set_property(GObject *object, guint property_id,
 
       if (item->account)
       {
-        GQuark account_features[] =
-        {
-          TP_ACCOUNT_FEATURE_CORE,
-          TP_ACCOUNT_FEATURE_ADDRESSING,
-          0
-        };
-
         g_signal_connect(item->account, "avatar-changed",
                          G_CALLBACK(on_avatar_changed), item);
 
@@ -410,8 +392,14 @@ rtcom_account_item_set_property(GObject *object, guint property_id,
         g_signal_connect(item->account, "status-changed",
                          G_CALLBACK(on_status_changed), item);
 
-        tp_proxy_prepare_async(
-          TP_PROXY(item->account), account_features, ready_cb, item);
+        g_return_if_fail(tp_proxy_is_prepared(TP_PROXY(item->account),
+                                              TP_ACCOUNT_FEATURE_CORE));
+        g_return_if_fail(tp_proxy_is_prepared(TP_PROXY(item->account),
+                                              TP_ACCOUNT_FEATURE_ADDRESSING));
+        g_return_if_fail(tp_proxy_is_prepared(TP_PROXY(item->account),
+                                              TP_ACCOUNT_FEATURE_CONNECTION));
+
+        update_account_item(ACCOUNT_ITEM(item), item->account);
       }
 
       break;
@@ -923,6 +911,7 @@ create_account_cb(TpAccountManager *proxy, const gchar *out_Account,
       {
         TP_ACCOUNT_FEATURE_CORE,
         TP_ACCOUNT_FEATURE_ADDRESSING,
+        TP_ACCOUNT_FEATURE_CONNECTION,
         0
       };
 
