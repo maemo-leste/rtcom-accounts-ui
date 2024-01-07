@@ -523,12 +523,15 @@ on_accounts_ui_initialized(AuiInstance *instance)
 
   if (dialog)
   {
+    GHashTable *properties;
     g_signal_connect_after(dialog, "destroy",
                            G_CALLBACK(on_requested_dialog_destroy), instance);
 
     gtk_widget_show(dialog);
-    dbus_g_method_return(priv->context, priv->object_path,
-                         aui_instance_get_properties(instance));
+
+    properties = aui_instance_get_properties(instance);
+    dbus_g_method_return(priv->context, priv->object_path, properties);
+    g_hash_table_unref(properties);
   }
   else
   {
@@ -580,8 +583,10 @@ aui_instance_action_new_account(AuiInstance *instance,
 
   if (gtk_widget_get_visible(priv->accounts_ui))
   {
-    dbus_g_method_return(context, priv->object_path,
-                         aui_instance_get_properties(instance));
+    GHashTable *properties = aui_instance_get_properties(instance);
+
+    dbus_g_method_return(context, priv->object_path, properties);
+    g_hash_table_unref(properties);
     return FALSE;
   }
 
@@ -626,8 +631,10 @@ aui_instance_action_edit_account(AuiInstance *instance,
 
   if (gtk_widget_get_visible(priv->accounts_ui))
   {
-    dbus_g_method_return(context, priv->object_path,
-                         aui_instance_get_properties(instance));
+    GHashTable *properties = aui_instance_get_properties(instance);
+
+    dbus_g_method_return(context, priv->object_path, properties);
+    g_hash_table_unref(properties);
     return FALSE;
   }
 
