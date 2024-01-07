@@ -74,6 +74,24 @@ if test "x$checks" = "xno"; then
     CFLAGS="$CFLAGS -DG_DISABLE_CHECKS"
 fi
 
+AC_ARG_ENABLE([maemo-launcher],
+	[AS_HELP_STRING([--enable-maemo-launcher],
+		[build with maemo-launcher support])],
+		[case "${enableval}" in
+			yes) maemo_launcher=true ;;
+			no)  maemo_launcher=false ;;
+			*) AC_MSG_ERROR([bad value ${enableval} for --enable-maemo-launcher]) ;;
+		esac], [maemo_launcher=false])
+
+if test x$maemo_launcher = xtrue
+then
+	PKG_CHECK_MODULES(MAEMO_LAUNCHER, [maemo-launcher-app])
+	AC_SUBST(MAEMO_LAUNCHER_CFLAGS)
+	MAEMO_LAUNCHER_LIBS="-Xcompiler \"$MAEMO_LAUNCHER_LIBS\""
+	AC_SUBST(MAEMO_LAUNCHER_LIBS)
+	echo "Enabling maemo launcher"
+fi
+
 AC_DEFINE_UNQUOTED([G_LOG_DOMAIN], "$PACKAGE_NAME", [Default logging facility])
 
 dnl Localization

@@ -1,10 +1,11 @@
 bin_PROGRAMS = rtcom-accounts-ui
 
 rtcom_accounts_ui_CFLAGS = -I$(top_srcdir)/lib/				\
-		$(ACCOUNTS_UI_CFLAGS) $(DGETTEXT)
+		$(ACCOUNTS_UI_CFLAGS) $(DGETTEXT) $(MAEMO_LAUNCHER_CFLAGS)
 
 rtcom_accounts_ui_LDFLAGS = -Wl,--as-needed $(ACCOUNTS_UI_LIBS)		\
-		-Wl,--no-undefined
+		-Wl,--no-undefined -Wl,--version-script=export.map \
+		$(MAEMO_LAUNCHER_LIBS)
 
 rtcom_accounts_ui_LDADD = $(top_builddir)/lib/librtcom-accounts-ui.la
 
