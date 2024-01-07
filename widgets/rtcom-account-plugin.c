@@ -28,6 +28,8 @@
 struct _RtcomAccountPluginPrivate
 {
   gboolean initialized;
+  gulong account_validity_changed_id;
+  gulong account_removed_id;
   GList *pending_services;
 };
 
@@ -154,6 +156,7 @@ static void
 rtcom_account_plugin_dispose(GObject *object)
 {
   RtcomAccountPlugin *plugin = RTCOM_ACCOUNT_PLUGIN(object);
+  RtcomAccountPluginPrivate *priv = PRIVATE(object);
 
   if (plugin->services)
   {
@@ -163,12 +166,20 @@ rtcom_account_plugin_dispose(GObject *object)
 
   if (plugin->manager)
   {
-    g_signal_handlers_disconnect_matched(
-      plugin->manager, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
-      on_account_validity_changed_cb, plugin);
-    g_signal_handlers_disconnect_matched(
-      plugin->manager, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
-      on_account_removed_cb, plugin);
+    if (priv->account_validity_changed_id)
+    {
+      g_signal_handler_disconnect(plugin->manager,
+                                  priv->account_validity_changed_id);
+      priv->account_validity_changed_id = 0;
+    }
+
+    if (priv->account_removed_id)
+    {
+      g_signal_handler_disconnect(plugin->manager, priv->account_removed_id);
+      priv->account_removed_id = 0;
+    }
+
+    g_object_unref(plugin->manager);
     plugin->manager = NULL;
   }
 
@@ -211,6 +222,12 @@ _add_accounts(RtcomAccountPlugin *plugin)
   GList *l;
 
   priv->initialized = TRUE;
+  priv->account_validity_changed_id =
+      g_signal_connect(plugin->manager, "account-validity-changed",
+                       G_CALLBACK(on_account_validity_changed_cb), plugin);
+  priv->account_removed_id =
+      g_signal_connect(plugin->manager, "account-removed",
+                       G_CALLBACK(on_account_removed_cb), plugin);
 
   g_object_get(plugin, "accounts-list", &accounts_list, NULL);
 
@@ -218,20 +235,15 @@ _add_accounts(RtcomAccountPlugin *plugin)
 
   for (l = accounts; l; l = l->next)
   {
-    gchar *service_id = get_service_id(l->data);
-    GHashTableIter iter;
-    const gchar *key;
     RtcomAccountService *svc;
+    gchar *service_id = get_service_id(l->data);
 
-    g_hash_table_iter_init(&iter, plugin->services);
+    svc = g_hash_table_lookup(plugin->services, service_id);
 
-    while (g_hash_table_iter_next(&iter, (gpointer *)&key, (gpointer *)&svc))
+    if (svc)
     {
-      if (!strcmp(service_id, key))
-      {
-        accounts_list_add(accounts_list,
-                          ACCOUNT_ITEM(rtcom_account_item_new(l->data, svc)));
-      }
+      accounts_list_add(accounts_list,
+                        ACCOUNT_ITEM(rtcom_account_item_new(l->data, svc)));
     }
 
     g_free(service_id);
@@ -343,7 +355,7 @@ rtcom_account_plugin_class_init(RtcomAccountPluginClass *klass)
   g_object_unref(manager);
 }
 
-void
+static void
 on_manager_ready(GObject *source_object, GAsyncResult *res, gpointer user_data)
 {
   GError *error = NULL;
@@ -374,6 +386,8 @@ rtcom_account_plugin_init(RtcomAccountPlugin *plugin)
 
   priv->initialized = FALSE;
   priv->pending_services = NULL;
+  priv->account_validity_changed_id = 0;
+  priv->account_removed_id = 0;
 }
 
 static void
@@ -385,20 +399,17 @@ service_ready_cb(RtcomAccountService *service, GError *error,
 
   priv->pending_services = g_list_remove(priv->pending_services, service);
 
-  if (!priv->pending_services)
-  {
-    tp_proxy_prepare_async(plugin->manager, NULL, on_manager_ready, plugin);
-
-    g_signal_connect(plugin->manager, "account-validity-changed",
-                     G_CALLBACK(on_account_validity_changed_cb), plugin);
-
-    g_signal_connect(plugin->manager, "account-removed",
-                     G_CALLBACK(on_account_removed_cb), plugin);
-  }
-
   g_signal_handlers_disconnect_matched(
     service, G_SIGNAL_MATCH_DATA | G_SIGNAL_MATCH_FUNC, 0, 0, NULL,
     service_ready_cb, user_data);
+
+  if (!priv->pending_services)
+  {
+    if (!tp_proxy_is_prepared(plugin->manager, TP_ACCOUNT_MANAGER_FEATURE_CORE))
+      tp_proxy_prepare_async(plugin->manager, NULL, on_manager_ready, plugin);
+    else
+      _add_accounts(user_data);
+  }
 }
 
 RtcomAccountService *
