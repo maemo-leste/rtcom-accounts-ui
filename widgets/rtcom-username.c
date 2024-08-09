@@ -852,6 +852,7 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
     gchar *first_at = g_utf8_strchr(username_text, -1, '@');
     gchar *last_at = g_utf8_strrchr(username_text, -1, '@');
     gboolean has_at_char = !!first_at;
+    gboolean starts_with_at_char = first_at == username_text;
     gboolean bad_at_char;
 
     if (first_at == last_at)
@@ -869,7 +870,7 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
       return FALSE;
     }
 
-    if (!has_at_char)
+    if (!has_at_char || starts_with_at_char)
     {
       if (self->must_have_at_separator)
       {
