@@ -155,6 +155,11 @@ rtcom_edit_set_property(GObject *object, guint property_id, const GValue *value,
       priv->username_invalid_chars_re = g_value_dup_string(value);
       break;
     }
+    case PROP_USERNAME_SHOW_SERVER_NAME:
+    {
+      priv->username_show_server_name = g_value_get_boolean(value);
+      break;
+    }
     case PROP_USERNAME_MUST_HAVE_AT_SEPARATOR:
     {
       priv->username_must_have_at = g_value_get_boolean(value);
@@ -228,6 +233,11 @@ rtcom_edit_get_property(GObject *object, guint property_id, GValue *value,
     case PROP_USERNAME_INVALID_CHARS_RE:
     {
       g_value_set_string(value, priv->username_invalid_chars_re);
+      break;
+    }
+    case PROP_USERNAME_SHOW_SERVER_NAME:
+    {
+      g_value_set_boolean(value, priv->username_show_server_name);
       break;
     }
     case PROP_USERNAME_MUST_HAVE_AT_SEPARATOR:
@@ -371,6 +381,7 @@ rtcom_edit_constructor(GType type, guint n_construct_properties,
       "field", priv->username_field,
       "sensitive", draft,
       "invalid-chars-re", priv->username_invalid_chars_re,
+      "show-server-name", priv->username_show_server_name,
       "must-have-at-separator", priv->username_must_have_at,
       "required-server", priv->username_required_server,
       "required-server-error", priv->username_required_server_error,
@@ -561,6 +572,14 @@ rtcom_edit_class_init(RtcomEditClass *klass)
       "Invalid chars reges for the username",
       "Regex to find forbidden characters in the username",
       NULL,
+      G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
+  g_object_class_install_property(
+    object_class, PROP_USERNAME_SHOW_SERVER_NAME,
+    g_param_spec_boolean(
+      "username-show-server-name",
+      "Show servername",
+      "Shows the @ sign and the server name part",
+      TRUE,
       G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
   g_object_class_install_property(
     object_class, PROP_USERNAME_MUST_HAVE_AT_SEPARATOR,
