@@ -1,3 +1,11 @@
+rtcom-accounts-ui (4.144.0) unstable; urgency=low
+
+  * widgets: login/edit/username - implement custom '@' symbol support
+  * widgets/rtcom-edit: add "show-server-name" property
+  * widgets/rtcom-username: avoid setting entry text with NULL string
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Sun, 11 Aug 2024 07:17:27 +0300
+
 rtcom-accounts-ui (4.143.0) unstable; urgency=low
 
   * service: Fix a memory leak
