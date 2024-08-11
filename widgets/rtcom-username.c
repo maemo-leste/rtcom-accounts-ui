@@ -28,6 +28,7 @@ struct _RtcomUsernamePrivate
 {
   gchar *placeholder;
   gchar *msg_empty;
+  gchar *at;
 };
 
 typedef struct _RtcomUsernamePrivate RtcomUsernamePrivate;
@@ -58,7 +59,8 @@ enum
   PROP_MUST_HAVE_AT_SEPARATOR,
   PROP_REQUIRED_SERVER,
   PROP_REQUIRED_SERVER_ERROR,
-  PROP_MSG_EMPTY
+  PROP_MSG_EMPTY,
+  PROP_USER_SERVER_SEPARATOR
 };
 
 enum
@@ -106,6 +108,7 @@ rtcom_username_finalize(GObject *object)
 
   g_free(priv->placeholder);
   g_free(priv->msg_empty);
+  g_free(priv->at);
 
   G_OBJECT_CLASS(rtcom_username_parent_class)->finalize(object);
 }
@@ -203,6 +206,13 @@ rtcom_username_set_property(GObject *object, guint property_id,
     {
       g_free(priv->msg_empty);
       priv->msg_empty = g_value_dup_string(value);
+      break;
+    }
+    case PROP_USER_SERVER_SEPARATOR:
+    {
+      g_free(priv->at);
+      priv->at = g_value_dup_string(value);
+      gtk_label_set_text(GTK_LABEL(self->at_label), priv->at);
       break;
     }
     default:
@@ -307,6 +317,11 @@ rtcom_username_get_property(GObject *object,
     case PROP_MSG_EMPTY:
     {
       g_value_set_string(value, priv->msg_empty);
+      break;
+    }
+    case PROP_USER_SERVER_SEPARATOR:
+    {
+      g_value_set_string(value, priv->at);
       break;
     }
     default:
@@ -468,6 +483,15 @@ rtcom_username_class_init(RtcomUsernameClass *klass)
       "Message to be printed if fields are empty",
       _("accounts_fi_enter_fields_first"),
       G_PARAM_CONSTRUCT_ONLY | GTK_PARAM_READWRITE));
+  g_object_class_install_property(
+    object_class,
+    PROP_USER_SERVER_SEPARATOR,
+    g_param_spec_string(
+      "user-server-separator",
+      "User/server separator",
+      "Separator between username and server in account string",
+      "@",
+      G_PARAM_CONSTRUCT_ONLY | GTK_PARAM_READWRITE));
 }
 
 static void
@@ -560,6 +584,7 @@ rtcom_username_store_settings(RtcomWidget *widget, GError **error,
                               RtcomAccountItem *item)
 {
   RtcomUsername *self = RTCOM_USERNAME(widget);
+  RtcomUsernamePrivate *priv = PRIVATE(self);
   const gchar *username = gtk_entry_get_text(GTK_ENTRY(self->username_editor));
 
   if (self->server_editor)
@@ -574,7 +599,7 @@ rtcom_username_store_settings(RtcomWidget *widget, GError **error,
       server_entry = GTK_BIN(self->server_editor)->child;
 
     server = gtk_entry_get_text(GTK_ENTRY(server_entry));
-    text = g_strconcat(username, "@", server, NULL);
+    text = g_strconcat(username, priv->at, server, NULL);
     rtcom_account_item_store_param_string(item, self->field, text);
     g_free(text);
   }
@@ -588,6 +613,7 @@ static gboolean
 rtcom_username_get_value(RtcomWidget *widget, GValue *value)
 {
   RtcomUsername *self = RTCOM_USERNAME(widget);
+  RtcomUsernamePrivate *priv = PRIVATE(self);
 
   if (G_VALUE_HOLDS(value, G_TYPE_INVALID) || G_VALUE_HOLDS(value, G_TYPE_NONE))
     g_value_init(value, G_TYPE_STRING);
@@ -608,8 +634,8 @@ rtcom_username_get_value(RtcomWidget *widget, GValue *value)
         server_entry = GTK_BIN(self->server_editor)->child;
 
       server_text = gtk_entry_get_text(GTK_ENTRY(server_entry));
-      g_value_take_string(value,
-                          g_strconcat(username_text, "@", server_text, NULL));
+      g_value_take_string(
+            value, g_strconcat(username_text, priv->at, server_text, NULL));
     }
     else
       g_value_set_static_string(value, username_text);
@@ -624,6 +650,7 @@ static void
 rtcom_username_get_settings(RtcomWidget *widget, RtcomAccountItem *item)
 {
   RtcomUsername *self = RTCOM_USERNAME(widget);
+  RtcomUsernamePrivate *priv = PRIVATE(self);
   GHashTable *parameters;
   const GValue *v;
   gchar *text;
@@ -650,7 +677,7 @@ rtcom_username_get_settings(RtcomWidget *widget, RtcomAccountItem *item)
 
     while (*p)
     {
-      if (*p == '@')
+      if (*p == *priv->at)
       {
         server_text = p + 1;
         *p = 0;
@@ -816,6 +843,7 @@ static gboolean
 rtcom_username_validate(RtcomWidget *widget, GError **error)
 {
   RtcomUsername *self = RTCOM_USERNAME(widget);
+  RtcomUsernamePrivate *priv = PRIVATE(self);
   const gchar *username_text;
   const gchar *server_text = NULL;
   gchar *username = NULL;
@@ -849,8 +877,8 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
   }
   else
   {
-    gchar *first_at = g_utf8_strchr(username_text, -1, '@');
-    gchar *last_at = g_utf8_strrchr(username_text, -1, '@');
+    gchar *first_at = g_utf8_strchr(username_text, -1, *priv->at);
+    gchar *last_at = g_utf8_strrchr(username_text, -1, *priv->at);
     gboolean has_at_char = !!first_at;
     gboolean bad_at_char;
 
@@ -864,7 +892,7 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
       const gchar *fmt = _("accountwizard_ib_illegal_character");
 
       g_set_error(
-        error, ACCOUNT_ERROR, ACCOUNT_ERROR_INVALID_CHARACTER, fmt, "@");
+        error, ACCOUNT_ERROR, ACCOUNT_ERROR_INVALID_CHARACTER, fmt, priv->at);
       rtcom_widget_set_error_widget(RTCOM_WIDGET(self), self->username_editor);
       return FALSE;
     }
@@ -892,7 +920,7 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
     }
     else
     {
-      gchar **split = g_strsplit(username_text, "@", 0);
+      gchar **split = g_strsplit(username_text, priv->at, 0);
       gchar *server_text_idn;
 
       g_assert(split);
@@ -961,7 +989,7 @@ rtcom_username_validate(RtcomWidget *widget, GError **error)
       GList *l;
 
       if (self->server_editor)
-        tmp = g_strconcat(username_text, "@", server_text, NULL);
+        tmp = g_strconcat(username_text, priv->at, server_text, NULL);
       else
         tmp = g_strdup(username_text);
 

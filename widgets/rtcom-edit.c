@@ -43,9 +43,11 @@ struct _RtcomEditPrivate
   gchar *username_label;
   gchar *username_invalid_chars_re;
   gboolean username_must_have_at;
+  gboolean username_show_server_name;
   gchar *username_required_server;
   gchar *username_required_server_error;
   gchar *msg_empty;
+  gchar *at;
   GtkTable *table;
   GtkWidget *avatar_align;
   GtkWidget *avatar_label;
@@ -71,10 +73,12 @@ enum
   PROP_USERNAME_FIELD,
   PROP_USERNAME_LABEL,
   PROP_USERNAME_INVALID_CHARS_RE,
+  PROP_USERNAME_SHOW_SERVER_NAME,
   PROP_USERNAME_MUST_HAVE_AT_SEPARATOR,
   PROP_USERNAME_REQUIRED_SERVER,
   PROP_USERNAME_REQUIRED_SERVER_ERROR,
-  PROP_MSG_EMPTY
+  PROP_MSG_EMPTY,
+  PROP_USER_SERVER_SEPARATOR
 };
 
 static void
@@ -101,6 +105,7 @@ rtcom_edit_finalize(GObject *object)
   g_free(priv->username_label);
   g_free(priv->username_invalid_chars_re);
   g_free(priv->msg_empty);
+  g_free(priv->at);
   g_free(priv->username_required_server);
   g_free(priv->username_required_server_error);
 
@@ -173,6 +178,12 @@ rtcom_edit_set_property(GObject *object, guint property_id, const GValue *value,
       priv->msg_empty = g_value_dup_string(value);
       break;
     }
+    case PROP_USER_SERVER_SEPARATOR:
+    {
+      g_free(priv->at);
+      priv->at = g_value_dup_string(value);
+      break;
+    }
     default:
     {
       G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -237,6 +248,11 @@ rtcom_edit_get_property(GObject *object, guint property_id, GValue *value,
     case PROP_MSG_EMPTY:
     {
       g_value_set_string(value, priv->msg_empty);
+      break;
+    }
+    case PROP_USER_SERVER_SEPARATOR:
+    {
+      g_value_set_string(value, priv->at);
       break;
     }
     default:
@@ -359,6 +375,7 @@ rtcom_edit_constructor(GType type, guint n_construct_properties,
       "required-server", priv->username_required_server,
       "required-server-error", priv->username_required_server_error,
       "msg-empty", priv->msg_empty,
+      "user-server-separator", priv->at,
       NULL);
 
   if (priv->items_mask & RTCOM_PLUGIN_CAPABILITY_PASSWORD)
@@ -576,6 +593,14 @@ rtcom_edit_class_init(RtcomEditClass *klass)
       "Message empty",
       "Message to be printed if fields are empty",
       _("accounts_fi_enter_fields_first"),
+      G_PARAM_CONSTRUCT_ONLY | GTK_PARAM_READWRITE));
+  g_object_class_install_property(
+    object_class, PROP_USER_SERVER_SEPARATOR,
+    g_param_spec_string(
+      "user-server-separator",
+      "User/server separator",
+      "Separator between username and server in account string",
+      "@",
       G_PARAM_CONSTRUCT_ONLY | GTK_PARAM_READWRITE));
 }
 

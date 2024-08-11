@@ -49,6 +49,7 @@ struct _RtcomLoginPrivate
   gchar *username_required_server_error;
   gchar *msg_empty;
   gchar *define_username;
+  gchar *at;
   GtkTable *table;
 };
 
@@ -79,7 +80,8 @@ enum
   PROP_USERNAME_REQUIRED_SERVER,
   PROP_USERNAME_REQUIRED_SERVER_ERROR,
   PROP_MSG_EMPTY,
-  PROP_DEFINE_USERNAME
+  PROP_DEFINE_USERNAME,
+  PROP_USER_SERVER_SEPARATOR
 };
 
 static void
@@ -94,6 +96,7 @@ rtcom_login_finalize(GObject *object)
   g_free(priv->username_field);
   g_free(priv->username_invalid_chars_re);
   g_free(priv->msg_empty);
+  g_free(priv->at);
   g_free(priv->define_username);
   g_free(priv->username_required_server);
   g_free(priv->username_required_server_error);
@@ -193,6 +196,12 @@ rtcom_login_set_property(GObject *object, guint property_id,
       priv->define_username = g_value_dup_string(value);
       break;
     }
+    case PROP_USER_SERVER_SEPARATOR:
+    {
+      g_free(priv->at);
+      priv->at = g_value_dup_string(value);
+      break;
+    }
     default:
     {
       G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -281,6 +290,11 @@ rtcom_login_get_property(GObject *object, guint property_id, GValue *value,
     case PROP_DEFINE_USERNAME:
     {
       g_value_set_string(value, priv->define_username);
+      break;
+    }
+    case PROP_USER_SERVER_SEPARATOR:
+    {
+      g_value_set_string(value, priv->at);
       break;
     }
     default:
@@ -372,6 +386,7 @@ constructor(GType type, guint n_construct_properties,
       "required-server", priv->username_required_server,
       "required-server-error", priv->username_required_server_error,
       "msg-empty", priv->msg_empty,
+      "user-server-separator", priv->at,
       "required", TRUE,
       "can-next", FALSE,
       NULL);
@@ -642,6 +657,14 @@ rtcom_login_class_init(RtcomLoginClass *klass)
       "define username user label",
       NULL,
       G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
+  g_object_class_install_property(
+    object_class, PROP_USER_SERVER_SEPARATOR,
+    g_param_spec_string(
+      "user-server-separator",
+      "User/server separator",
+      "Separator between username and server in account string",
+      "@",
+      G_PARAM_CONSTRUCT_ONLY | GTK_PARAM_READWRITE));
 }
 
 static void
