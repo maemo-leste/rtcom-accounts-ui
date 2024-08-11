@@ -798,7 +798,7 @@ rtcom_username_set_account(RtcomWidget *widget, RtcomAccountItem *account)
 
         gtk_combo_box_set_active(GTK_COMBO_BOX(self->server_editor), FALSE);
       }
-      else
+      else if (domains[0])
         gtk_entry_set_text(GTK_ENTRY(self->server_editor), domains[0]);
 
       g_strfreev(domains);
