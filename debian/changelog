@@ -1,3 +1,9 @@
+rtcom-accounts-ui (4.145.0) unstable; urgency=low
+
+  * widgets: stop using volatile keyword
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Sat, 04 Jan 2025 19:17:47 +0100
+
 rtcom-accounts-ui (4.144.0) unstable; urgency=low
 
   * widgets: login/edit/username - implement custom '@' symbol support
