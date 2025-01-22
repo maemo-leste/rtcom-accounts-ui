@@ -1,5 +1,6 @@
-AC_INIT([rtcom-accounts], [4.141])
-AC_CANONICAL_SYSTEM
+AC_INIT([rtcom-accounts], patsubst(esyscmd([dpkg-parsechangelog | sed -n '/^Version: \(.*\)$/ {s//\1/;p}']), []))
+
+AC_CANONICAL_TARGET
 
 AM_CONFIG_HEADER(config.h)
 
@@ -9,9 +10,7 @@ AM_INIT_AUTOMAKE
 
 AC_PROG_CC
 AC_PROG_INSTALL
-AM_PROG_LIBTOOL
-
-AC_HEADER_STDC
+LT_INIT
 
 AC_PATH_X
 AC_PATH_XTRA
@@ -102,7 +101,7 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "${GETTEXT_PACKAGE}", [gettext package])
 DGETTEXT="-D'_(msgid)'='g_dgettext(GETTEXT_PACKAGE, msgid)'"
 AC_SUBST(DGETTEXT)
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 	Makefile
 	lib/Makefile
 	service/Makefile
@@ -112,4 +111,5 @@ AC_OUTPUT([
 	rtcom-accounts-ui.pc
 	rtcom-accounts-widgets.pc
 ])
+AC_OUTPUT
 
