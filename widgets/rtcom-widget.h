@@ -102,8 +102,8 @@ type_name##_get_instance_private (TypeName *self) \
 GType \
 type_name##_get_type (void) \
 { \
-  static gsize g_define_type_id = 0; \
-  if (g_once_init_enter (&g_define_type_id))  \
+  static gsize g_define_type_id_fence = 0; \
+  if (g_once_init_enter (&g_define_type_id_fence))  \
     { \
       GType g_define_type_id = \
         g_type_register_static_simple (TYPE_PARENT, \
@@ -117,9 +117,9 @@ type_name##_get_type (void) \
 #define _RTCOM_DEFINE_TYPE_EXTENDED_END() \
         /* following custom code */ \
       } \
-      g_once_init_leave (&g_define_type_id, g_define_type_id); \
+      g_once_init_leave (&g_define_type_id_fence, g_define_type_id); \
     } \
-  return g_define_type_id; \
+  return g_define_type_id_fence; \
 } /* closes type_name##_get_type() */
 
 GType  rtcom_widget_get_type (void) G_GNUC_CONST;

@@ -47,9 +47,9 @@ enum
 GType
 rtcom_widget_get_type(void)
 {
-  static gsize g_define_type_id = 0;
+  static gsize g_define_type_id_fence = 0;
 
-  if (g_once_init_enter(&g_define_type_id))
+  if (g_once_init_enter(&g_define_type_id_fence))
   {
     static const GTypeInfo info =
     {
@@ -71,10 +71,10 @@ rtcom_widget_get_type(void)
                              &info,
                              0);
 
-    g_once_init_leave(&g_define_type_id, g_define_type_id);
+    g_once_init_leave(&g_define_type_id_fence, g_define_type_id);
   }
 
-  return g_define_type_id;
+  return g_define_type_id_fence;
 }
 
 static void
