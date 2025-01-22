@@ -1,3 +1,9 @@
+rtcom-accounts-ui (4.145.1) unstable; urgency=low
+
+  * rtcom-widget: Fix variables naming
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Wed, 22 Jan 2025 06:42:51 +0200
+
 rtcom-accounts-ui (4.145.0) unstable; urgency=low
 
   * widgets: stop using volatile keyword
