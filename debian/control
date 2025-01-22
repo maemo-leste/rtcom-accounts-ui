@@ -27,7 +27,7 @@ Package: rtcom-accounts-ui
 Section: comm
 Architecture: any
 Multi-Arch: same
-Depends: ${shlibs:Depends}, ${misc:Depends},
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${launcher:Depends},
  osso-applet-accounts-l10n-mr0 | osso-applet-accounts-l10n-mr,
  hildon-common-strings-l10n-mr0 | hildon-common-strings-l10n-mr,
  ke-recv-l10n-mr | ke-recv-l10n-mr0
